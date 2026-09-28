@@ -1,0 +1,695 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>[hidden]{display:none!important}body{margin:0}img{max-width:100%}</style>
+</head>
+<body>
+<title>Wiz Aula</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Baloo+2:wght@600;800&display=swap">
+<style>
+:root{
+  --bg:#F6F1F7; --surface:#FFFFFF; --surface-2:#F0E6F3; --ink:#2D1040; --muted:#66566F;
+  --line:#E3D5E8; --primary:#792D83; --primary-hover:#5A1A64; --on-primary:#FFFFFF;
+  --gold:#EBB22E; --gold-soft:#FBEFCF; --on-gold:#2D1040; --live:#D23B3B; --ok:#2C7A3F;
+  --err-bg:#FCE8E8; --err-ink:#9B1C1C; --shadow:0 1px 2px rgba(45,16,64,.06),0 6px 20px rgba(45,16,64,.08);
+  --display:"Baloo 2","Trebuchet MS",system-ui,sans-serif;
+  --body:"Atkinson Hyperlegible",system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#170A20; --surface:#241030; --surface-2:#30183D; --ink:#F4ECF7; --muted:#BBA8C4;
+    --line:#3E2649; --primary:#C47FCF; --primary-hover:#D89BE1; --on-primary:#1B0A24;
+    --gold:#F0BE45; --gold-soft:#3A2A12; --on-gold:#1B0A24; --live:#FF6B6B; --ok:#6FCF8E;
+    --err-bg:#3B1618; --err-ink:#FFB4B4; --shadow:0 1px 2px rgba(0,0,0,.3),0 6px 20px rgba(0,0,0,.35);
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#170A20; --surface:#241030; --surface-2:#30183D; --ink:#F4ECF7; --muted:#BBA8C4;
+  --line:#3E2649; --primary:#C47FCF; --primary-hover:#D89BE1; --on-primary:#1B0A24;
+  --gold:#F0BE45; --gold-soft:#3A2A12; --on-gold:#1B0A24; --live:#FF6B6B; --ok:#6FCF8E;
+  --err-bg:#3B1618; --err-ink:#FFB4B4; --shadow:0 1px 2px rgba(0,0,0,.3),0 6px 20px rgba(0,0,0,.35);
+}
+html{font-size:100%}
+html.size-1{font-size:112.5%}
+html.size-2{font-size:125%}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:1.125rem;line-height:1.5;padding-inline:16px;padding-block:0 48px}
+*{box-sizing:border-box}
+.app{max-width:34rem;margin:0 auto;display:flex;flex-direction:column;gap:18px}
+h1,h2,h3{font-family:var(--display);line-height:1.15;margin:0;text-wrap:balance}
+p{margin:0}
+button,input,select{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--gold);outline-offset:2px;border-radius:10px}
+
+/* top */
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-top:16px}
+.brand{display:flex;align-items:center;gap:10px}
+.mark{width:42px;height:42px;border-radius:12px;background:var(--primary);display:grid;place-items:center;flex:none}
+.mark svg{width:24px;height:24px}
+.brand-name{font-family:var(--display);font-weight:800;font-size:1.35rem;line-height:1}
+.brand-sub{font-size:.8rem;color:var(--muted);letter-spacing:.04em;text-transform:uppercase}
+.sizebtn{border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:8px 12px;font-weight:700;cursor:pointer;min-height:44px}
+.proto{font-size:.85rem;color:var(--muted);background:var(--surface-2);border-radius:10px;padding:8px 12px}
+
+/* tabs */
+.tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;background:var(--surface-2);padding:6px;border-radius:16px}
+.tab{border:0;background:transparent;border-radius:12px;padding:10px 6px;font-weight:700;cursor:pointer;min-height:48px;font-size:1rem;color:var(--muted)}
+.tab[aria-selected="true"]{background:var(--surface);color:var(--ink);box-shadow:var(--shadow)}
+
+.card{background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:20px;display:flex;flex-direction:column;gap:14px}
+.eyebrow{font-size:.8rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.muted{color:var(--muted)}
+.small{font-size:.95rem}
+
+/* student hero */
+.hero{border-radius:24px;padding:24px 20px;display:flex;flex-direction:column;gap:14px;background:var(--surface);border:1px solid var(--line);box-shadow:var(--shadow)}
+.hero.is-live{background:var(--gold-soft);border-color:var(--gold)}
+.livetag{display:inline-flex;align-items:center;gap:8px;font-weight:700;color:var(--live);letter-spacing:.06em;text-transform:uppercase;font-size:.9rem}
+.dot{width:12px;height:12px;border-radius:50%;background:var(--live);box-shadow:0 0 0 0 var(--live);animation:pulse 1.6s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--live) 60%,transparent)}100%{box-shadow:0 0 0 12px transparent}}
+.hero h2{font-size:2rem}
+.bigdate{font-family:var(--display);font-weight:800;font-size:2.4rem;line-height:1;font-variant-numeric:tabular-nums}
+.join{display:flex;align-items:center;justify-content:center;gap:12px;min-height:84px;border-radius:20px;background:var(--gold);color:var(--on-gold);font-family:var(--display);font-weight:800;font-size:1.7rem;text-decoration:none;border:0;cursor:pointer;box-shadow:0 4px 0 color-mix(in srgb,var(--gold) 55%,#000)}
+.join:active{transform:translateY(2px);box-shadow:0 2px 0 color-mix(in srgb,var(--gold) 55%,#000)}
+.join svg{width:32px;height:32px}
+.join[aria-disabled="true"]{background:var(--surface-2);color:var(--muted);box-shadow:none;cursor:default;font-size:1.2rem}
+.hint{font-size:1rem;color:var(--muted)}
+
+.turmaline{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.linkbtn{background:none;border:0;color:var(--primary);font-weight:700;cursor:pointer;padding:8px 0;text-decoration:underline;text-underline-offset:3px;min-height:44px}
+
+.picker{display:flex;flex-direction:column;gap:10px}
+.pick{display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;border:2px solid var(--line);background:var(--surface);border-radius:16px;padding:16px 18px;cursor:pointer;min-height:72px}
+.pick:hover{border-color:var(--primary)}
+.pick strong{font-family:var(--display);font-size:1.3rem}
+
+.list{display:flex;flex-direction:column;list-style:none;margin:0;padding:0}
+.list li{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0;border-top:1px solid var(--line)}
+.list li:first-child{border-top:0}
+.when{display:flex;flex-direction:column}
+.when b{font-variant-numeric:tabular-nums}
+.pill{font-size:.8rem;font-weight:700;border-radius:999px;padding:4px 10px;white-space:nowrap}
+.pill.live{background:var(--live);color:#fff}
+.pill.sched{background:var(--surface-2);color:var(--ink)}
+.pill.done{background:transparent;color:var(--muted);border:1px solid var(--line)}
+.pill.flash{background:var(--gold);color:var(--on-gold)}
+
+.soundrow{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.toggle{border:2px solid var(--line);background:var(--surface);border-radius:14px;padding:10px 16px;font-weight:700;cursor:pointer;min-height:48px}
+.toggle[aria-pressed="true"]{border-color:var(--ok);color:var(--ok)}
+
+/* teacher */
+.field{display:flex;flex-direction:column;gap:6px}
+.field label{font-weight:700;font-size:1rem}
+.input,select.input{width:100%;min-height:52px;border:2px solid var(--line);background:var(--surface);border-radius:14px;padding:10px 14px}
+.input:focus{border-color:var(--primary);outline:none}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:420px){.row2{grid-template-columns:1fr}}
+.check{display:flex;align-items:center;gap:10px;font-size:1rem;cursor:pointer}
+.check input{width:24px;height:24px;accent-color:var(--primary)}
+.btn{min-height:56px;border-radius:16px;border:0;background:var(--primary);color:var(--on-primary);font-weight:700;font-size:1.1rem;cursor:pointer;padding:12px 18px}
+.btn:hover{background:var(--primary-hover)}
+.btn.gold{background:var(--gold);color:var(--on-gold)}
+.btn.ghost{background:transparent;color:var(--primary);border:2px solid var(--line);min-height:44px;font-size:.95rem;padding:8px 12px}
+.btn.ghost:hover{border-color:var(--primary);background:transparent}
+.acts{display:flex;gap:8px;flex-wrap:wrap}
+.list li.pli{flex-direction:column;align-items:stretch;gap:10px}
+.plrow{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.when{min-width:0;overflow-wrap:anywhere}
+.err{background:var(--err-bg);color:var(--err-ink);border-radius:12px;padding:10px 14px;font-size:1rem}
+.okmsg{color:var(--ok);font-weight:700;font-size:1rem}
+.flashhead{display:flex;align-items:center;gap:10px}
+.flashhead svg{width:28px;height:28px;flex:none}
+details.card summary{cursor:pointer;font-family:var(--display);font-weight:800;font-size:1.25rem;list-style:none;display:flex;justify-content:space-between;align-items:center}
+details.card summary::-webkit-details-marker{display:none}
+details.card summary::after{content:"+";font-size:1.6rem;color:var(--muted)}
+details.card[open] summary::after{content:"–"}
+
+/* guide */
+.devs{display:flex;gap:8px;flex-wrap:wrap}
+.dev{border:2px solid var(--line);background:var(--surface);border-radius:14px;padding:10px 16px;font-weight:700;cursor:pointer;min-height:48px}
+.dev[aria-pressed="true"]{border-color:var(--primary);background:var(--surface-2)}
+.steps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:12px;counter-reset:s}
+.steps li{counter-increment:s;display:grid;grid-template-columns:44px 1fr;gap:14px;align-items:start;background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:16px}
+.steps li::before{content:counter(s);width:44px;height:44px;border-radius:50%;background:var(--primary);color:var(--on-primary);font-family:var(--display);font-weight:800;font-size:1.4rem;display:grid;place-items:center}
+.steps b{display:block;margin-bottom:2px}
+.kbd{display:inline-flex;align-items:center;gap:4px;background:var(--surface-2);border-radius:8px;padding:0 8px;font-weight:700;white-space:nowrap}
+.kbd svg{width:16px;height:16px}
+.faq{display:flex;flex-direction:column;gap:14px}
+.faq h3{font-size:1.1rem;font-family:var(--body);font-weight:700}
+.warn{background:var(--gold-soft);border-radius:14px;padding:12px 14px;font-size:1rem}
+
+/* toast (simulated phone notification) */
+.toast{position:fixed;left:50%;transform:translateX(-50%);top:calc(12px + env(safe-area-inset-top,0px));width:min(30rem,calc(100% - 24px));background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:18px;box-shadow:0 10px 40px rgba(0,0,0,.25);padding:14px 16px;display:flex;gap:12px;align-items:center;text-decoration:none;z-index:10}
+.toast .mark{width:40px;height:40px}
+.toast small{color:var(--muted);display:block;font-size:.8rem}
+@media (prefers-reduced-motion:reduce){.dot{animation:none}}
+
+/* layouts por tamanho de tela: celular (1 coluna), tablet (mais largo), computador (2 colunas) */
+.smain,.sside,.pgrid,.pcol{display:flex;flex-direction:column;gap:16px}
+@media (min-width:640px){
+  .app{max-width:40rem}
+  .hero{padding:32px 28px}
+}
+@media (min-width:960px){
+  .app{max-width:68rem}
+  .tabs{max-width:36rem}
+  .proto{max-width:48rem}
+  .smain{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);align-items:start;column-gap:24px;row-gap:16px}
+  .smain .turmaline{grid-column:1 / -1}
+  .picker{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
+  #studentPicker .card{max-width:48rem}
+  .pgrid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:start;gap:24px}
+  #view-prof>.field{max-width:32rem}
+  .steps{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
+  .faq{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:32px}
+  .faq .eyebrow{grid-column:1 / -1}
+  .toast{left:auto;right:24px;transform:none;width:24rem}
+}
+@media (hover:hover){
+  .join:not([aria-disabled="true"]):hover{filter:brightness(1.05)}
+  .dev:hover,.toggle:hover,.sizebtn:hover{border-color:var(--primary)}
+  .tab:hover{color:var(--ink)}
+}
+</style>
+
+<div class="app">
+  <header class="top">
+    <div class="brand">
+      <div class="mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><rect x="2.5" y="6" width="13" height="12" rx="3" fill="#EBB22E"/><path d="M16 10.5l5-3v9l-5-3z" fill="#EBB22E"/></svg></div>
+      <div><div class="brand-name">Wiz Aula</div><div class="brand-sub">Mister Wiz · Escola de Líderes</div></div>
+    </div>
+    <button class="sizebtn" id="sizeBtn" type="button" aria-label="Aumentar o tamanho das letras">A+</button>
+  </header>
+
+  <p class="proto">Protótipo. Os avisos reais só funcionam na versão instalada; aqui eles aparecem como um balão na tela.</p>
+
+  <nav class="tabs" role="tablist" aria-label="Ver como">
+    <button class="tab" role="tab" id="tab-aluno" data-tab="aluno" type="button">Aluno</button>
+    <button class="tab" role="tab" id="tab-prof" data-tab="prof" type="button">Professor</button>
+    <button class="tab" role="tab" id="tab-guia" data-tab="guia" type="button">Como instalar</button>
+  </nav>
+
+  <!-- ALUNO -->
+  <section id="view-aluno" role="tabpanel" aria-labelledby="tab-aluno" class="app" style="gap:16px">
+    <div id="studentPicker" hidden>
+      <div class="card">
+        <h2>Qual é a sua turma?</h2>
+        <p class="muted">Toque na sua turma. Você só faz isso uma vez.</p>
+        <div class="picker" id="pickerList"></div>
+      </div>
+    </div>
+    <div id="studentMain" class="smain" hidden>
+      <div class="turmaline">
+        <p id="myTurmaLabel" class="small"></p>
+        <button class="linkbtn" id="changeTurma" type="button">Trocar turma</button>
+      </div>
+      <div id="hero" class="hero" aria-live="polite"></div>
+      <div class="sside">
+      <div class="card">
+        <div class="soundrow">
+          <div><b>Aviso com som</b><p class="muted small">Toca um sininho quando a aula começar.</p></div>
+          <button class="toggle" id="soundBtn" type="button" aria-pressed="false">Ativar</button>
+        </div>
+      </div>
+      <div class="card">
+        <p class="eyebrow">Próximas aulas</p>
+        <ul class="list" id="upcomingList"></ul>
+      </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PROFESSOR -->
+  <section id="view-prof" role="tabpanel" aria-labelledby="tab-prof" hidden class="app" style="gap:16px">
+    <div class="field">
+      <label for="profTurma">Turma</label>
+      <select id="profTurma" class="input"></select>
+    </div>
+
+    <div class="pgrid">
+    <div class="pcol">
+    <form class="card" id="flashForm" novalidate>
+      <div class="flashhead">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13 2L4 14h7l-1 8 9-12h-7z" fill="var(--gold)" stroke="var(--on-gold)" stroke-width="1.2" stroke-linejoin="round"/></svg>
+        <h2 style="font-size:1.5rem">Aula relâmpago</h2>
+      </div>
+      <p class="muted small">Começa agora. Todos os alunos da turma recebem um aviso e entram com um toque.</p>
+      <div class="field">
+        <label for="flashLink">Link do Google Meet</label>
+        <input id="flashLink" class="input" inputmode="url" autocomplete="off" placeholder="meet.google.com/abc-defg-hij">
+      </div>
+      <label class="check"><input type="checkbox" id="flashSave"> Guardar como link fixo da turma</label>
+      <div id="flashMsg" aria-live="polite"></div>
+      <button class="btn gold" type="submit">Começar agora e avisar alunos</button>
+    </form>
+
+    <form class="card" id="schedForm" novalidate>
+      <h2 style="font-size:1.5rem">Agendar aula</h2>
+      <div class="row2">
+        <div class="field"><label for="schedDate">Dia</label><input id="schedDate" type="date" class="input"></div>
+        <div class="field"><label for="schedTime">Horário</label><input id="schedTime" type="time" class="input" value="19:00"></div>
+      </div>
+      <div class="row2">
+        <div class="field"><label for="schedDur">Duração</label>
+          <select id="schedDur" class="input"><option value="30">30 minutos</option><option value="45">45 minutos</option><option value="60" selected>1 hora</option><option value="90">1 hora e 30</option></select>
+        </div>
+        <div class="field"><label for="schedTitle">Assunto (opcional)</label><input id="schedTitle" class="input" placeholder="Ex.: Lesson 12"></div>
+      </div>
+      <div class="field">
+        <label for="schedLink">Link do Google Meet</label>
+        <input id="schedLink" class="input" inputmode="url" autocomplete="off" placeholder="meet.google.com/abc-defg-hij">
+      </div>
+      <label class="check"><input type="checkbox" id="schedRepeat"> Repetir toda semana (próximas 4 semanas)</label>
+      <div id="schedMsg" aria-live="polite"></div>
+      <button class="btn" type="submit">Agendar</button>
+    </form>
+    </div>
+
+    <div class="pcol">
+    <div class="card">
+      <p class="eyebrow">Aulas desta turma</p>
+      <ul class="list" id="profList"></ul>
+    </div>
+
+    <details class="card" id="turmasBox">
+      <summary>Turmas</summary>
+      <ul class="list" id="turmaList"></ul>
+      <form id="turmaForm" novalidate style="display:flex;flex-direction:column;gap:12px">
+        <p class="eyebrow">Nova turma</p>
+        <div class="row2">
+          <div class="field"><label for="tName">Nome</label><input id="tName" class="input" placeholder="Ex.: Teens 3 · tarde"></div>
+          <div class="field"><label for="tNivel">Nível</label><input id="tNivel" class="input" placeholder="Ex.: Teens 3"></div>
+        </div>
+        <div class="field"><label for="tHorario">Horário</label><input id="tHorario" class="input" placeholder="Ex.: Segunda e quarta, 15:00 - 16:00"></div>
+        <div class="field"><label for="tLink">Link fixo do Meet (opcional)</label><input id="tLink" class="input" inputmode="url" placeholder="meet.google.com/abc-defg-hij"></div>
+        <div id="turmaMsg" aria-live="polite"></div>
+        <button class="btn" type="submit">Criar turma</button>
+      </form>
+    </details>
+    </div>
+    </div>
+  </section>
+
+  <!-- GUIA -->
+  <section id="view-guia" role="tabpanel" aria-labelledby="tab-guia" hidden class="app" style="gap:16px">
+    <div class="card">
+      <h2>Como deixar tudo pronto</h2>
+      <p class="muted">Faça uma vez só, com calma. Depois é só tocar no aviso.</p>
+      <div class="devs" role="group" aria-label="Escolha o aparelho">
+        <button class="dev" type="button" data-dev="android">Android</button>
+        <button class="dev" type="button" data-dev="iphone">iPhone</button>
+        <button class="dev" type="button" data-dev="ipad">iPad</button>
+        <button class="dev" type="button" data-dev="pc">Computador</button>
+        <button class="dev" type="button" data-dev="prof">Professor</button>
+      </div>
+      <p class="muted small" id="devNote"></p>
+    </div>
+
+    <ol class="steps" data-guide="android">
+      <li><div><b>Instale o Google Meet</b>Abra a <span class="kbd">Play Store</span>, procure <b style="display:inline">Google Meet</b> e toque em <span class="kbd">Instalar</span>. Abra o app uma vez e depois feche.</div></li>
+      <li><div><b>Abra o link da escola</b>Toque no link que a escola mandou no WhatsApp. Ele abre no Chrome.</div></li>
+      <li><div><b>Digite seu código</b>Coloque o código de acesso que a escola te deu e toque em <span class="kbd">Entrar</span>.</div></li>
+      <li><div><b>Instale o Wiz Aula</b>Toque em <span class="kbd">Instalar aplicativo</span> quando aparecer. Se não aparecer, toque nos <span class="kbd">⋮</span> no canto de cima e depois em <span class="kbd">Adicionar à tela inicial</span>.</div></li>
+      <li><div><b>Ative os avisos</b>Abra o Wiz Aula pelo ícone novo na tela do celular. Toque em <span class="kbd">Ativar avisos</span> e depois em <span class="kbd">Permitir</span>.</div></li>
+      <li><div><b>Pronto!</b>Quando a aula começar, chega um aviso. Toque no aviso e depois no botão amarelo <span class="kbd">Entrar na aula</span>.</div></li>
+    </ol>
+
+    <ol class="steps" data-guide="iphone" hidden>
+      <li><div><b>Instale o Google Meet</b>Abra a <span class="kbd">App Store</span>, procure <b style="display:inline">Google Meet</b> e toque em <span class="kbd">Obter</span>. Abra o app uma vez e depois feche.</div></li>
+      <li><div><b>Abra o link no Safari</b>Toque no link da escola. Se ele abrir dentro do WhatsApp, toque no ícone de bússola ou em <span class="kbd">Abrir no Safari</span>.</div></li>
+      <li><div><b>Adicione à Tela de Início</b>Toque no botão <span class="kbd"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 3v12M8 7l4-4 4 4M5 11v9h14v-9"/></svg>Compartilhar</span> (quadrado com seta para cima). Role para baixo, toque em <span class="kbd">Adicionar à Tela de Início</span> e depois em <span class="kbd">Adicionar</span>.</div></li>
+      <li><div><b>Abra pelo ícone novo</b>Feche o Safari e abra o <b style="display:inline">Wiz Aula</b> pelo ícone na tela do iPhone. Isso é importante: pelo Safari os avisos não funcionam.</div></li>
+      <li><div><b>Entre e ative os avisos</b>Digite seu código de acesso. Toque em <span class="kbd">Ativar avisos</span> e depois em <span class="kbd">Permitir</span>.</div></li>
+      <li><div><b>Pronto!</b>Quando a aula começar, chega um aviso. Toque no aviso e depois no botão amarelo <span class="kbd">Entrar na aula</span>.</div></li>
+    </ol>
+    <p class="warn" data-guide="iphone" hidden>Os avisos precisam do iOS 16.4 ou mais novo. Para ver a sua versão: <b style="display:inline">Ajustes › Geral › Sobre</b>.</p>
+
+    <ol class="steps" data-guide="ipad" hidden>
+      <li><div><b>Instale o Google Meet</b>Abra a <span class="kbd">App Store</span>, procure <b style="display:inline">Google Meet</b> e toque em <span class="kbd">Obter</span>. Abra o app uma vez e depois feche.</div></li>
+      <li><div><b>Abra o link no Safari</b>Toque no link da escola. Se ele abrir dentro do WhatsApp, toque em <span class="kbd">Abrir no Safari</span>.</div></li>
+      <li><div><b>Adicione à Tela de Início</b>No iPad, o botão <span class="kbd"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 3v12M8 7l4-4 4 4M5 11v9h14v-9"/></svg>Compartilhar</span> fica <b style="display:inline">em cima, à direita</b>, ao lado do endereço. Toque nele, depois em <span class="kbd">Adicionar à Tela de Início</span> e em <span class="kbd">Adicionar</span>.</div></li>
+      <li><div><b>Abra pelo ícone novo</b>Feche o Safari e abra o <b style="display:inline">Wiz Aula</b> pelo ícone na tela do iPad. Pelo Safari os avisos não funcionam.</div></li>
+      <li><div><b>Entre e ative os avisos</b>Digite seu código de acesso. Toque em <span class="kbd">Ativar avisos</span> e depois em <span class="kbd">Permitir</span>.</div></li>
+      <li><div><b>Pronto!</b>Quando a aula começar, chega um aviso. Toque no aviso e depois no botão amarelo <span class="kbd">Entrar na aula</span>.</div></li>
+    </ol>
+    <p class="warn" data-guide="ipad" hidden>Os avisos precisam do iPadOS 16.4 ou mais novo. Para ver a sua versão: <b style="display:inline">Ajustes › Geral › Sobre</b>.</p>
+
+    <ol class="steps" data-guide="pc" hidden>
+      <li><div><b>Use um navegador atualizado</b>No Windows ou no Chromebook, use o <span class="kbd">Google Chrome</span> ou o <span class="kbd">Microsoft Edge</span>. No Mac, use o Chrome ou o <span class="kbd">Safari</span>. Não precisa instalar o Google Meet.</div></li>
+      <li><div><b>Abra o link e entre</b>Clique no link da escola e digite o código de acesso que a escola te deu.</div></li>
+      <li><div><b>Instale o Wiz Aula</b>No Chrome ou no Edge, clique no ícone de <span class="kbd">Instalar</span> no fim da barra de endereço e confirme. No Safari do Mac, clique em <span class="kbd">Arquivo › Adicionar ao Dock</span>.</div></li>
+      <li><div><b>Ative os avisos</b>Clique em <span class="kbd">Ativar avisos</span> e depois em <span class="kbd">Permitir</span>. No Windows, confira se as notificações estão ligadas em <span class="kbd">Configurações › Sistema › Notificações</span>.</div></li>
+      <li><div><b>Na hora da aula</b>Clique em <span class="kbd">Entrar na aula</span>. O Meet abre numa nova aba. Clique em <span class="kbd">Permitir</span> para câmera e microfone e depois em <span class="kbd">Participar agora</span>.</div></li>
+      <li><div><b>Deixe o computador ligado</b>Os avisos chegam com o computador ligado e conectado à internet. Um fone de ouvido ajuda a ouvir melhor a aula.</div></li>
+    </ol>
+
+    <ol class="steps" data-guide="prof" hidden>
+      <li><div><b>Crie um link fixo para cada turma</b>No Google Agenda, crie um evento repetido da turma com Google Meet. O link fica o mesmo toda semana. Copie esse link.</div></li>
+      <li><div><b>Guarde o link na turma</b>Aqui no Wiz Aula, em <span class="kbd">Professor › Turmas</span>, crie a turma e cole o link fixo.</div></li>
+      <li><div><b>Libere a entrada</b>No Meet, abra os controles do organizador. Se a opção existir na sua conta, deixe o acesso como <span class="kbd">Aberto</span>. Se não, aceite cada aluno quando ele pedir para participar.</div></li>
+      <li><div><b>Aula agendada</b>Escolha dia e horário e toque em <span class="kbd">Agendar</span>. O botão do aluno acende 10 minutos antes.</div></li>
+      <li><div><b>Aula relâmpago</b>Cole o link e toque em <span class="kbd">Começar agora</span>. Todos recebem o aviso na hora.</div></li>
+      <li><div><b>Terminou?</b>Toque em <span class="kbd">Encerrar</span> para o botão do aluno apagar.</div></li>
+    </ol>
+
+    <div class="card faq">
+      <p class="eyebrow">Problemas comuns</p>
+      <div><h3>Pediu para fazer login no Google</h3><p class="muted">Toque em <b>Participar como convidado</b>, escreva seu nome e toque em <b>Pedir para participar</b>. O professor deixa você entrar.</p></div>
+      <div><h3>Abriu a loja pedindo para baixar o Meet</h3><p class="muted">Instale o Google Meet (passo 1) e toque de novo em <b>Entrar na aula</b>.</p></div>
+      <div><h3>O aviso não chegou</h3><p class="muted">Abra o Wiz Aula pelo ícone da tela inicial. Nos ajustes do aparelho, confira se as notificações do Wiz Aula estão ligadas.</p></div>
+      <div><h3>No computador, a câmera ou o microfone não funcionam</h3><p class="muted">Clique no cadeado ao lado do endereço do site, permita câmera e microfone e recarregue a página.</p></div>
+      <div><h3>Crianças sem conta Google</h3><p class="muted">Podem entrar como convidadas, sem conta. O professor aceita a entrada na hora da aula.</p></div>
+    </div>
+  </section>
+</div>
+
+<a id="toast" class="toast" hidden target="_blank" rel="noopener" href="#">
+  <div class="mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><rect x="2.5" y="6" width="13" height="12" rx="3" fill="#EBB22E"/><path d="M16 10.5l5-3v9l-5-3z" fill="#EBB22E"/></svg></div>
+  <div><small>Wiz Aula · agora</small><b id="toastTitle">Sua aula começou!</b><div id="toastBody" class="small">Toque para entrar.</div></div>
+</a>
+
+<script>
+(function(){
+"use strict";
+var WINDOW = 10*60*1000; // botão acende 10 min antes da aula agendada
+var $ = function(s){ return document.querySelector(s); };
+var esc = function(s){ return String(s==null?"":s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c];}); };
+var LS = {
+  get:function(k,d){ try{ var v=localStorage.getItem(k); return v==null?d:JSON.parse(v); }catch(e){ return d; } },
+  set:function(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){} }
+};
+
+function detectDevice(){
+  var ua=navigator.userAgent||"", touch=navigator.maxTouchPoints||0;
+  if(/iPad/.test(ua) || (/Macintosh/.test(ua) && touch>1)) return "ipad"; // iPadOS se apresenta como Mac
+  if(/iPhone|iPod/.test(ua)) return "iphone";
+  if(/Android/.test(ua)) return "android";
+  return "pc";
+}
+var DEVICE = detectDevice();
+var DEV_NAME = {android:"um aparelho Android", iphone:"um iPhone", ipad:"um iPad", pc:"um computador"};
+
+var state = {
+  turmas:[], aulas:[], tab:LS.get("wa_tab","aluno"), myTurma:LS.get("wa_turma",null),
+  profTurma:LS.get("wa_prof_turma",null), guide:LS.get("wa_guide",DEVICE), size:LS.get("wa_size",0),
+  sound:false, loaded:false
+};
+var db = null, lastProfTurma = undefined;
+
+/* ---------- helpers ---------- */
+function normMeet(s){
+  s = String(s||"").trim();
+  var m = s.match(/(?:https?:\/\/)?meet\.google\.com\/([a-z]{3}-?[a-z]{4}-?[a-z]{3})(?:[/?#].*)?$/i) || s.match(/^([a-z]{3}-?[a-z]{4}-?[a-z]{3})$/i);
+  if(!m) return null;
+  var c = m[1].toLowerCase().replace(/-/g,"");
+  return "https://meet.google.com/"+c.slice(0,3)+"-"+c.slice(3,7)+"-"+c.slice(7);
+}
+function shortMeet(u){ return String(u||"").replace(/^https?:\/\//,""); }
+function cap(s){ return s.charAt(0).toUpperCase()+s.slice(1); }
+function sameDay(a,b){ return a.getFullYear()===b.getFullYear()&&a.getMonth()===b.getMonth()&&a.getDate()===b.getDate(); }
+function fmtDay(ts){
+  var d=new Date(ts), n=new Date(), t=new Date(); t.setDate(n.getDate()+1);
+  if(sameDay(d,n)) return "Hoje";
+  if(sameDay(d,t)) return "Amanhã";
+  return cap(d.toLocaleDateString("pt-BR",{weekday:"long",day:"numeric",month:"long"}));
+}
+function fmtTime(ts){ return new Date(ts).toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"}); }
+function plural(n,s,p){ return n+" "+(n===1?s:p); }
+function countdown(ms){
+  var m=Math.max(1,Math.ceil(ms/60000)), d=Math.floor(m/1440), h=Math.floor((m%1440)/60), mm=m%60;
+  var v=function(n){ return n===1?"Falta ":"Faltam "; };
+  if(d>0) return v(d)+plural(d,"dia","dias")+(h?" e "+plural(h,"hora","horas"):"");
+  if(h>0) return v(h)+plural(h,"hora","horas")+(mm?" e "+plural(mm,"minuto","minutos"):"");
+  return v(mm)+plural(mm,"minuto","minutos");
+}
+function dur(a){ return (Number(a.durationMin)||60)*60000; }
+function isLive(a,now){
+  if(a.status==="encerrada") return false;
+  if(a.type==="relampago") return now>=a.startAt && now<a.startAt+dur(a);
+  return now>=a.startAt-WINDOW && now<a.startAt+dur(a);
+}
+function isOver(a,now){ return a.status==="encerrada" || now>=a.startAt+dur(a); }
+function turmaById(id){ for(var i=0;i<state.turmas.length;i++){ if(state.turmas[i].id===id) return state.turmas[i]; } return null; }
+function aulasOf(tid){ return state.aulas.filter(function(a){return a.turmaId===tid;}).sort(function(a,b){return a.startAt-b.startAt;}); }
+function msg(el,kind,text){ el.innerHTML = text ? '<p class="'+(kind==="err"?"err":"okmsg")+'">'+esc(text)+'</p>' : ""; }
+var LINK_ERR = "Esse link não parece do Google Meet. Ele deve ser assim: meet.google.com/abc-defg-hij";
+
+/* ---------- store (db compartilhado ou demonstração local) ---------- */
+function localSeed(){
+  function nextAt(dows,h){ // próximo dia da semana (0=dom) às h:00
+    var n=new Date();
+    for(var i=0;i<8;i++){ var d=new Date(n.getFullYear(),n.getMonth(),n.getDate()+i,h,0,0,0); if(dows.indexOf(d.getDay())>-1 && d.getTime()+3600000>n.getTime()) return d.getTime(); }
+    return n.getTime()+86400000;
+  }
+  var now=Date.now();
+  state.turmas=[
+    {id:"masters",name:"Masters",nivel:"Adults Book 4",horario:"Terça e quinta, 19:00 - 20:00",teacher:"Chuck",meetLink:"https://meet.google.com/abc-defg-hij",example:true},
+    {id:"teens2",name:"Teens 2 · tarde",nivel:"Teens 2",horario:"Segunda e quarta, 15:00 - 16:00",teacher:"Chuck",meetLink:"",example:true}
+  ];
+  state.aulas=[
+    {id:"a1",turmaId:"masters",type:"agendada",title:"Lesson 12",startAt:nextAt([2,4],19),durationMin:60,meetLink:"https://meet.google.com/abc-defg-hij",status:"agendada",createdAt:now},
+    {id:"a2",turmaId:"teens2",type:"agendada",title:"",startAt:nextAt([1,3],15),durationMin:60,meetLink:"https://meet.google.com/xyz-abcd-efg",status:"agendada",createdAt:now}
+  ];
+}
+var store = {
+  add:function(coll,obj){
+    if(db) return db.collection(coll).add(obj);
+    obj.id=coll.charAt(0)+Date.now()+Math.random().toString(36).slice(2,6);
+    state[coll].push(obj); onData(); return Promise.resolve();
+  },
+  update:function(coll,id,patch){
+    if(db) return db.doc(coll+"/"+id).update(patch);
+    state[coll].forEach(function(x){ if(x.id===id) Object.assign(x,patch); }); onData(); return Promise.resolve();
+  },
+  remove:function(coll,id){
+    if(db) return db.doc(coll+"/"+id).delete();
+    state[coll]=state[coll].filter(function(x){return x.id!==id;}); onData(); return Promise.resolve();
+  }
+};
+function snapToList(snap){ return snap.docs.map(function(d){ var o=Object.assign({},d.data()); o.id=d.id; return o; }); }
+
+/* ---------- avisos (balão + som) ---------- */
+var seen = {}, firstPass = true, audio = null, toastTimer = null;
+function chime(){
+  if(!state.sound || !audio) return;
+  try{
+    [880,1175].forEach(function(f,i){
+      var o=audio.createOscillator(), g=audio.createGain(), t=audio.currentTime+i*0.22;
+      o.frequency.value=f; o.type="sine"; g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(0.3,t+0.02); g.gain.exponentialRampToValueAtTime(0.0001,t+0.5);
+      o.connect(g); g.connect(audio.destination); o.start(t); o.stop(t+0.55);
+    });
+  }catch(e){}
+  try{ if(navigator.vibrate) navigator.vibrate([200,100,200]); }catch(e){}
+}
+function notify(a){
+  var t=turmaById(a.turmaId), el=$("#toast");
+  $("#toastTitle").textContent = a.type==="relampago" ? "Aula relâmpago começou!" : "Sua aula vai começar!";
+  $("#toastBody").textContent = (t?t.name+" · ":"")+"Toque para entrar.";
+  el.href = a.meetLink; el.hidden = false;
+  clearTimeout(toastTimer); toastTimer=setTimeout(function(){ el.hidden=true; },12000);
+  chime();
+}
+function checkAlerts(){
+  if(!state.myTurma || !state.loaded) return;
+  var now=Date.now();
+  aulasOf(state.myTurma).forEach(function(a){
+    if(!isLive(a,now)) return;
+    var key=a.id+":"+(a.pingAt||0);
+    if(!seen[key]){ seen[key]=true; if(!firstPass) notify(a); }
+  });
+  firstPass=false;
+}
+
+/* ---------- render: aluno ---------- */
+function renderStudent(){
+  var t = state.myTurma && turmaById(state.myTurma);
+  $("#studentPicker").hidden = !!t;
+  $("#studentMain").hidden = !t;
+  if(!t){
+    $("#pickerList").innerHTML = state.turmas.length ? state.turmas.map(function(x){
+      return '<button type="button" class="pick" data-pick="'+esc(x.id)+'"><strong>'+esc(x.name)+'</strong><span class="muted small">'+esc(x.nivel)+' · '+esc(x.horario)+'</span></button>';
+    }).join("") : '<p class="muted">'+(state.loaded?"Nenhuma turma cadastrada ainda. Peça ao professor.":"Carregando turmas…")+'</p>';
+    return;
+  }
+  $("#myTurmaLabel").innerHTML = "Turma <b>"+esc(t.name)+"</b> · "+esc(t.nivel);
+  var now=Date.now(), list=aulasOf(t.id);
+  var live=list.filter(function(a){return isLive(a,now);});
+  var next=list.filter(function(a){return !isOver(a,now) && !isLive(a,now);});
+  var hero=$("#hero"), cam='<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="2.5" y="6" width="13" height="12" rx="3" fill="currentColor"/><path d="M16 10.5l5-3v9l-5-3z" fill="currentColor"/></svg>';
+  if(live.length){
+    var a=live[live.length-1], early=now<a.startAt;
+    hero.className="hero is-live";
+    hero.innerHTML =
+      '<span class="livetag"><span class="dot"></span>'+(early?"Pode entrar":"Aula ao vivo agora")+'</span>'+
+      '<h2>'+esc(a.type==="relampago"?"Aula relâmpago":(a.title||"Aula de inglês"))+'</h2>'+
+      '<p class="muted">'+(t.teacher?"Com o professor "+esc(t.teacher)+" · ":"")+(early?"começa às "+fmtTime(a.startAt):"começou às "+fmtTime(a.startAt))+'</p>'+
+      '<a class="join" href="'+esc(a.meetLink)+'" target="_blank" rel="noopener">'+cam+'Entrar na aula</a>'+
+      '<p class="hint">'+(DEVICE==="pc"
+        ? 'O Google Meet abre numa nova aba. Clique em <b>Permitir</b> para câmera e microfone e depois em <b>Participar agora</b>.'
+        : 'O Google Meet vai abrir. Toque em <b>Pedir para participar</b> ou <b>Participar agora</b>.')+'</p>';
+  } else if(next.length){
+    var n=next[0];
+    hero.className="hero";
+    hero.innerHTML =
+      '<p class="eyebrow">Próxima aula</p>'+
+      '<div><p class="bigdate">'+fmtTime(n.startAt)+'</p><h2 style="font-size:1.5rem;margin-top:4px">'+esc(fmtDay(n.startAt))+'</h2></div>'+
+      '<p class="muted">'+esc(countdown(n.startAt-now))+(n.title?" · "+esc(n.title):"")+'</p>'+
+      '<span class="join" aria-disabled="true">O botão acende 10 minutos antes</span>';
+  } else {
+    hero.className="hero";
+    hero.innerHTML = '<p class="eyebrow">Nenhuma aula marcada</p><h2 style="font-size:1.5rem">Tudo tranquilo por aqui</h2><p class="muted">Quando o professor começar uma aula, você recebe um aviso e o botão amarelo aparece aqui.</p>';
+  }
+  var up=next.slice(live.length?0:1,6);
+  $("#upcomingList").innerHTML = up.length ? up.map(function(a){
+    return '<li><span class="when"><b>'+esc(fmtDay(a.startAt))+' · '+fmtTime(a.startAt)+'</b><span class="muted small">'+esc(a.title||"Aula")+'</span></span><span class="pill sched">Agendada</span></li>';
+  }).join("") : '<li><span class="muted small">Nenhuma outra aula marcada.</span></li>';
+}
+
+/* ---------- render: professor ---------- */
+function renderProf(){
+  var sel=$("#profTurma"), cur=state.profTurma;
+  if(!turmaById(cur)) cur = state.turmas.length ? state.turmas[0].id : null;
+  state.profTurma=cur;
+  sel.innerHTML = state.turmas.map(function(x){ return '<option value="'+esc(x.id)+'">'+esc(x.name)+' · '+esc(x.nivel)+'</option>'; }).join("");
+  if(cur) sel.value=cur;
+  var t=turmaById(cur);
+  var fl=$("#flashLink"), sl=$("#schedLink");
+  if(t && t.meetLink){ if(!fl.value) fl.value=shortMeet(t.meetLink); if(!sl.value) sl.value=shortMeet(t.meetLink); }
+  if(cur!==lastProfTurma){ $("#flashSave").checked = !!(t && !t.meetLink); lastProfTurma=cur; }
+
+  var now=Date.now();
+  var list=t?aulasOf(t.id).filter(function(a){ return !isOver(a,now) || now-(a.startAt+dur(a))<86400000; }):[];
+  $("#profList").innerHTML = list.length ? list.map(function(a){
+    var live=isLive(a,now), over=isOver(a,now);
+    var pill = live ? '<span class="pill live">Ao vivo</span>' : over ? '<span class="pill done">Encerrada</span>' : (a.type==="relampago"?'<span class="pill flash">Relâmpago</span>':'<span class="pill sched">Agendada</span>');
+    var acts = live ? '<button class="btn ghost" data-ping="'+esc(a.id)+'" type="button">Avisar de novo</button><button class="btn ghost" data-end="'+esc(a.id)+'" type="button">Encerrar</button>'
+             : over ? '' : '<button class="btn ghost" data-del="'+esc(a.id)+'" type="button">Excluir</button>';
+    return '<li class="pli"><span class="plrow"><span class="when"><b>'+esc(fmtDay(a.startAt))+' · '+fmtTime(a.startAt)+'</b><span class="muted small">'+esc(a.type==="relampago"?"Aula relâmpago":(a.title||"Aula"))+' · '+esc(shortMeet(a.meetLink))+'</span></span>'+pill+'</span>'+(acts?'<span class="acts">'+acts+'</span>':'')+'</li>';
+  }).join("") : '<li><span class="muted small">Nenhuma aula para esta turma. Agende uma ou comece uma aula relâmpago.</span></li>';
+
+  $("#turmaList").innerHTML = state.turmas.map(function(x){
+    return '<li><span class="when"><b>'+esc(x.name)+'</b><span class="muted small">'+esc(x.nivel)+' · '+esc(x.horario)+'</span><span class="muted small">'+(x.meetLink?esc(shortMeet(x.meetLink)):"Sem link fixo")+'</span></span>'+(x.example?'<span class="pill done">Exemplo</span>':'')+'</li>';
+  }).join("");
+}
+
+/* ---------- render: guia / abas ---------- */
+function renderTabs(){
+  document.querySelectorAll(".tab").forEach(function(b){ b.setAttribute("aria-selected", String(b.dataset.tab===state.tab)); });
+  $("#view-aluno").hidden = state.tab!=="aluno";
+  $("#view-prof").hidden = state.tab!=="prof";
+  $("#view-guia").hidden = state.tab!=="guia";
+  document.querySelectorAll(".dev").forEach(function(b){ b.setAttribute("aria-pressed", String(b.dataset.dev===state.guide)); });
+  document.querySelectorAll("[data-guide]").forEach(function(el){ el.hidden = el.dataset.guide!==state.guide; });
+  $("#devNote").textContent = "Parece que você está usando "+DEV_NAME[DEVICE]+". Se não for, escolha o seu aparelho acima.";
+}
+function applySize(){
+  document.documentElement.classList.remove("size-1","size-2");
+  if(state.size) document.documentElement.classList.add("size-"+state.size);
+  $("#sizeBtn").textContent = ["A+","A++","A"][state.size];
+  $("#sizeBtn").setAttribute("aria-label", state.size===2?"Voltar ao tamanho normal das letras":"Aumentar o tamanho das letras");
+}
+function onData(){ renderStudent(); renderProf(); checkAlerts(); }
+
+/* ---------- eventos ---------- */
+document.querySelectorAll(".tab").forEach(function(b){ b.addEventListener("click",function(){ state.tab=b.dataset.tab; LS.set("wa_tab",state.tab); renderTabs(); }); });
+document.querySelectorAll(".dev").forEach(function(b){ b.addEventListener("click",function(){ state.guide=b.dataset.dev; LS.set("wa_guide",state.guide); renderTabs(); }); });
+$("#sizeBtn").addEventListener("click",function(){ state.size=(state.size+1)%3; LS.set("wa_size",state.size); applySize(); });
+$("#pickerList").addEventListener("click",function(e){
+  var b=e.target.closest("[data-pick]"); if(!b) return;
+  state.myTurma=b.dataset.pick; LS.set("wa_turma",state.myTurma); firstPass=true; seen={}; onData();
+});
+$("#changeTurma").addEventListener("click",function(){ state.myTurma=null; LS.set("wa_turma",null); renderStudent(); });
+$("#soundBtn").addEventListener("click",function(){
+  state.sound=!state.sound;
+  if(state.sound){ try{ audio = audio || new (window.AudioContext||window.webkitAudioContext)(); if(audio.resume) audio.resume(); }catch(e){ audio=null; } chime(); }
+  this.setAttribute("aria-pressed",String(state.sound)); this.textContent=state.sound?"Ligado":"Ativar";
+});
+$("#toast").addEventListener("click",function(){ this.hidden=true; });
+$("#profTurma").addEventListener("change",function(){
+  state.profTurma=this.value; LS.set("wa_prof_turma",state.profTurma);
+  $("#flashLink").value=""; $("#schedLink").value=""; msg($("#flashMsg")); msg($("#schedMsg")); renderProf();
+});
+
+$("#flashForm").addEventListener("submit",function(e){
+  e.preventDefault();
+  var t=turmaById(state.profTurma), out=$("#flashMsg");
+  if(!t){ msg(out,"err","Crie uma turma primeiro, em Turmas."); return; }
+  var link=normMeet($("#flashLink").value);
+  if(!link){ msg(out,"err",LINK_ERR); return; }
+  var now=Date.now(), jobs=[];
+  aulasOf(t.id).forEach(function(a){ if(a.type==="relampago" && isLive(a,now)) jobs.push(store.update("aulas",a.id,{status:"encerrada"})); });
+  if($("#flashSave").checked) jobs.push(store.update("turmas",t.id,{meetLink:link}));
+  jobs.push(store.add("aulas",{turmaId:t.id,type:"relampago",title:"Aula relâmpago",startAt:now,durationMin:60,meetLink:link,status:"ao_vivo",pingAt:now,createdAt:now}));
+  Promise.all(jobs).then(function(){ msg(out,"ok","Pronto! A aula começou e os alunos de "+t.name+" foram avisados."); })
+    .catch(function(){ msg(out,"err","Não deu para salvar agora. Confira a internet e tente de novo."); });
+});
+
+$("#schedForm").addEventListener("submit",function(e){
+  e.preventDefault();
+  var t=turmaById(state.profTurma), out=$("#schedMsg");
+  if(!t){ msg(out,"err","Crie uma turma primeiro, em Turmas."); return; }
+  var d=$("#schedDate").value, tm=$("#schedTime").value;
+  if(!d || !tm){ msg(out,"err","Escolha o dia e o horário da aula."); return; }
+  var start=new Date(d+"T"+tm).getTime();
+  if(isNaN(start)){ msg(out,"err","Esse dia ou horário não é válido."); return; }
+  if(start<Date.now()){ msg(out,"err","Esse horário já passou. Escolha um horário futuro."); return; }
+  var link=normMeet($("#schedLink").value || t.meetLink);
+  if(!link){ msg(out,"err",LINK_ERR); return; }
+  var reps=$("#schedRepeat").checked?4:1, jobs=[], now=Date.now(), title=$("#schedTitle").value.trim();
+  for(var i=0;i<reps;i++){
+    var s=new Date(start); s.setDate(s.getDate()+7*i);
+    jobs.push(store.add("aulas",{turmaId:t.id,type:"agendada",title:title,startAt:s.getTime(),durationMin:Number($("#schedDur").value),meetLink:link,status:"agendada",createdAt:now}));
+  }
+  Promise.all(jobs).then(function(){ msg(out,"ok", reps>1?"Agendadas "+reps+" aulas, uma por semana.":"Aula agendada para "+fmtDay(start).toLowerCase()+" às "+fmtTime(start)+"."); $("#schedTitle").value=""; })
+    .catch(function(){ msg(out,"err","Não deu para salvar agora. Confira a internet e tente de novo."); });
+});
+
+$("#profList").addEventListener("click",function(e){
+  var b=e.target.closest("button"); if(!b) return;
+  if(b.dataset.ping) store.update("aulas",b.dataset.ping,{pingAt:Date.now()});
+  else if(b.dataset.end) store.update("aulas",b.dataset.end,{status:"encerrada"});
+  else if(b.dataset.del){
+    if(b.dataset.confirm){ store.remove("aulas",b.dataset.del); }
+    else { b.dataset.confirm="1"; b.textContent="Toque para confirmar"; setTimeout(function(){ if(b.isConnected){ delete b.dataset.confirm; b.textContent="Excluir"; } },4000); }
+  }
+});
+
+$("#turmaForm").addEventListener("submit",function(e){
+  e.preventDefault();
+  var out=$("#turmaMsg"), name=$("#tName").value.trim(), nivel=$("#tNivel").value.trim(), hor=$("#tHorario").value.trim(), raw=$("#tLink").value.trim();
+  if(!name || !nivel || !hor){ msg(out,"err","Preencha nome, nível e horário."); return; }
+  var link = raw ? normMeet(raw) : "";
+  if(raw && !link){ msg(out,"err",LINK_ERR); return; }
+  store.add("turmas",{name:name,nivel:nivel,horario:hor,teacher:"",meetLink:link,createdAt:Date.now()})
+    .then(function(){ msg(out,"ok","Turma "+name+" criada."); ["#tName","#tNivel","#tHorario","#tLink"].forEach(function(s){ $(s).value=""; }); })
+    .catch(function(){ msg(out,"err","Não deu para salvar agora. Confira a internet e tente de novo."); });
+});
+
+/* ---------- início ---------- */
+(function(){ var d=new Date(); d.setDate(d.getDate()+1); $("#schedDate").value=d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); })();
+applySize(); renderTabs(); renderStudent(); renderProf();
+setInterval(onData, 30000);
+
+function startLocal(){ localSeed(); state.loaded=true; onData(); }
+var use = window.claude && window.claude.use;
+if(!use){ startLocal(); return; }
+window.claude.use("db").then(function(handle){
+  if(!handle){ startLocal(); return; }
+  db=handle; var got={turmas:false,aulas:false};
+  ["turmas","aulas"].forEach(function(c){
+    db.collection(c).onSnapshot(function(snap){
+      state[c]=snapToList(snap); got[c]=true; state.loaded=got.turmas&&got.aulas; onData();
+    },function(){ /* falha terminal: mantém o que já foi carregado */ });
+  });
+}).catch(startLocal);
+})();
+</script>
+
+</body>
+</html>

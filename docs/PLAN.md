@@ -1,0 +1,112 @@
+# Wiz Aula — Project Plan
+
+As of 2026-09-28. Author: Chuck DeSouza.
+
+## Concept
+
+Wiz Aula turns joining an online class into one tap: the teacher posts a Google Meet link once, students get an alert and press one yellow button. It targets people with little tech experience: older adults, kids and first-time smartphone users.
+
+- **Install once, like an app.** A PWA on Android phones and tablets, iPhone, iPad, and Windows, Mac and Chromebook computers; no app-store publishing needed for v1.
+- **Two class types**, as in Speak Easy: *scheduled* classes (button lights up 10 minutes before) and *lightning* classes (start now, everyone alerted at once).
+- **Google Meet stays the video tool.** Wiz Aula only stores and delivers the link.
+- **Success measure:** a student goes from alert to inside the Meet in 2 taps and under 20 seconds.
+
+## Research findings
+
+| Topic | Finding | What it means for us |
+| --- | --- | --- |
+| Push on iPhone/iPad | Works since iOS/iPadOS 16.4, only for web apps added to the Home Screen and opened from that icon ([Pushpad](https://pushpad.xyz/blog/ios-special-requirements-for-web-push-notifications), [MagicBell](https://www.magicbell.com/blog/pwa-ios-limitations-safari-support-complete-guide)) | Guide forces "Add to Home Screen" and "open from the icon". Detect standalone mode before asking for alerts. |
+| Permission prompt | iOS only shows it after a user tap ([Pushpad](https://pushpad.xyz/blog/ios-special-requirements-for-web-push-notifications)) | One big "Ativar avisos" button on first open. |
+| Install | Android Chrome shows an install banner (`beforeinstallprompt`); iOS only via Share › Add to Home Screen ([MobiLoud](https://www.mobiloud.com/blog/progressive-web-apps-ios/)) | One-tap install on Android; illustrated steps on iOS. |
+| Stack | Next.js documents PWA manifest + Web Push with VAPID ([Next.js](https://nextjs.org/docs/app/guides/progressive-web-apps)) | Fits the Speak Easy stack. |
+| Opening Meet | `https://meet.google.com/...` links hand off to the Meet app when installed ([TestMu](https://www.testmuai.com/software-testing-questions/how-to-open-link-in-app-instead-of-browser/)) | Join button is a plain Meet link. |
+| Guests | Guests join on mobile without a Google account by typing a name and knocking; hosts can set access to Open ([Google Workspace Updates](https://workspaceupdates.googleblog.com/2024/01/join-a-meeting-without-a-google-account-on-mobile.html)) | Kids and older students need no Google account. |
+| Mac | Safari supports web push since Safari 16 on macOS 13 ([WebKit](https://webkit.org/blog/12945/meet-web-push/)); Dock web apps since macOS 14 ([WWDC23](https://developer.apple.com/videos/play/wwdc2023/10120/)) | Mac users get alerts in Safari or Chrome. |
+
+## Device support
+
+| Device | Install | Alerts | Joining Meet |
+| --- | --- | --- | --- |
+| Android phone or tablet | Chrome install banner, or ⋮ › Adicionar à tela inicial | Yes, in Chrome, even before install | Meet app (recommended) or browser |
+| iPhone | Safari › Compartilhar › Adicionar à Tela de Início | Yes, iOS 16.4+, only from the Home Screen icon | Meet app (recommended) |
+| iPad | Same as iPhone; Share button is top right, next to the address bar | Yes, iPadOS 16.4+, only from the Home Screen icon | Meet app (recommended) |
+| Windows or Chromebook | Install icon at the end of the Chrome or Edge address bar | Yes, Chrome, Edge, Firefox; Windows notifications must be on | Browser tab, no install; allow camera and microphone |
+| Mac | Chrome install icon, or Safari › Arquivo › Adicionar ao Dock (macOS 14+) | Yes, Safari 16+ or Chrome | Browser tab, no install |
+
+iPadOS reports itself as a Mac in the browser, so detect an iPad by touch support (`maxTouchPoints > 1`).
+
+## Product scope (v1)
+
+**Student (Aluno)**
+
+- Sign in with a school-issued access code. No password, no email.
+- One home screen: next class date and time, a countdown, and a big yellow **Entrar na aula** button that lights up 10 minutes before a scheduled class or immediately for a lightning class.
+- Push alert when a class goes live, plus a reminder 10 minutes before scheduled classes. Tapping the alert opens the Meet directly.
+- Text-size control (A, A+, A++), high-contrast brand colours, Portuguese interface.
+
+**Teacher (Professor)**
+
+- Pick a turma, paste a Meet link (full link or just the code; validated and normalised).
+- **Aula relâmpago:** start now; ends any earlier live lightning class for that turma and alerts every student.
+- **Agendar aula:** date, time, duration, optional topic, optional weekly repeat (4 weeks).
+- Live class actions: **Avisar de novo** (re-send the alert) and **Encerrar** (turn the students' button off).
+- Each turma keeps a fixed Meet link.
+
+**Admin / school (phase 2)**
+
+- Import turmas and students from the roster spreadsheet (teacher, turma, nível, horário, student name — same columns as the student feedback template).
+- Generate and print access codes; see who installed and who has alerts on.
+- Attendance from join taps, feeding the feedback report compiler.
+
+## Architecture
+
+```
+Teacher ──▶ API (Next.js on Vercel) ──▶ Supabase Postgres
+                                              │ class times, subscriptions
+                                              ▼
+Student phone ◀── Push services (APNs/FCM) ◀── Alert sender (1-min cron + Web Push)
+      │ tap alert, then "Entrar na aula"
+      ▼
+Google Meet (app or browser, as guest)
+```
+
+Lightning classes skip the cron: the API sends the alert the moment the teacher taps Start. The student app reads the next class from the API on open, so it is correct even when an alert is missed.
+
+| Table | Key fields | Notes |
+| --- | --- | --- |
+| `schools` | id, name, city | One per franchise unit |
+| `turmas` | id, school_id, name, nivel, horario, teacher_id, meet_link | Fixed Meet link per turma |
+| `people` | id, school_id, role (student, teacher, admin), name, access_code_hash | No email or password for students |
+| `enrollments` | person_id, turma_id | A student can sit in more than one turma |
+| `aulas` | id, turma_id, type (scheduled, lightning), start_at, duration_min, meet_link, status, ping_at | Same shape as the prototype |
+| `push_subscriptions` | person_id, endpoint, keys, platform, last_ok_at | One row per device; drop on 404/410 |
+| `join_events` | aula_id, person_id, joined_at | Attendance |
+
+Row-level security keeps each school's data separate: a student reads only their own turmas and aulas; only teachers of a turma write its aulas.
+
+## Roadmap
+
+| Phase | Duration (proposed) | Content | Gate to next phase |
+| --- | --- | --- | --- |
+| Prototype | done 2026-09-28 | Clickable demo with shared class data (`prototype/wiz-aula.html`) | Teacher OK on the demo |
+| MVP | about 3 weeks | PWA (manifest, service worker, install screens), access-code login, Supabase schema + RLS, VAPID Web Push, T-10 reminder cron, in-app setup guide | One pilot turma installed |
+| Pilot | about 4 weeks | 3 turmas (adult, teens, kids) | ≥90% installed with alerts on; median alert-to-Meet < 20 s; < 5% alerts missed |
+| Rollout | after pilot | Roster import, access-code cards, attendance, optional Play Store via TWA | — |
+
+## Risks & mitigations
+
+| Risk | Mitigation |
+| --- | --- |
+| iPhone/iPad users skip "Add to Home Screen", so no alerts | Detect a Safari tab and show only the install card until installed |
+| iOS older than 16.4 | Show next class and join button without alerts; WhatsApp reminder fallback (Z-API already in the Mister Wiz stack) |
+| Teacher on a personal Google account cannot set Open access | Teacher admits guests manually; guide says so |
+| Meet link typos | Validate and normalise on paste; fixed link per turma |
+| Stale push subscriptions | Delete on 404/410; "Ativar avisos" re-subscribes |
+| Minors' data (LGPD) | Store only name and turma; access codes, not accounts |
+
+## Open decisions
+
+- [ ] Standalone product or a module inside the existing Mister Wiz app (misterwiz.fun, FastAPI + Flutter)? This plan assumes a standalone Next.js PWA on the Speak Easy stack.
+- [ ] Domain (for example a subdomain of misterwiz.fun).
+- [ ] Which three turmas run the pilot.
+- [ ] Whether Speak Easy reuses the same codebase for its live and lightning classes.
