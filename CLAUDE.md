@@ -2,7 +2,7 @@
 
 One-tap join for online classes on Google Meet. The teacher posts a Meet link once; students get a push alert and press one big yellow button to enter the class. Built for people with little tech experience: older adults, kids, first-time smartphone users. Part of the Mister Wiz (Escola de Líderes) ecosystem.
 
-Read `docs/PLAN.md` before any architectural change. The clickable reference for every screen is `prototype/wiz-aula.html` (open it in a browser; it runs in local demo mode).
+Read `docs/PLAN.md` before any architectural change. Next.js 16 differs from older versions: see `AGENTS.md` and the bundled docs in `node_modules/next/dist/docs/`. The clickable reference for every screen is `prototype/wiz-aula.html` (open it in a browser; it runs in local demo mode).
 
 ## Product rules (non-negotiable)
 
@@ -58,6 +58,15 @@ Before calling any task done, re-read every file you created or changed and chec
 2. **Layout:** phone (390px), tablet (820px) and desktop (1366px) with no horizontal scroll; light and dark themes.
 3. **Grammar:** Portuguese UI copy (agreement such as "Falta 1 minuto" / "Faltam 5 minutos", accents, capitalisation) and English docs.
 4. **Tests and types:** `tsc --noEmit`, lint and tests pass.
+
+## Code map
+
+- `src/app/` pages: `/` (Aluno), `/professor`, `/como-instalar`
+- `src/lib/` pure logic with unit tests next to it (`*.test.ts`, run with `npm test`): `meet.ts` (link normalisation), `aulas.ts` (10-minute window, lightning replacement), `time.ts` (UTC ↔ America/Sao_Paulo), `format.ts` (pt-BR dates and countdown)
+- `src/lib/store.ts` in-memory mock store; Supabase replaces it in milestone 2
+- `src/content/guides.tsx` install guide text, kept identical to `docs/SETUP-GUIDES-PT.md`
+- Files in `src/lib` import each other with `.ts` extensions so `node --test` can run them without a build step.
+- Checks: `npm run typecheck`, `npm run lint`, `npm test`, `npm run build`.
 
 ## Working agreements
 

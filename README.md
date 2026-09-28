@@ -11,6 +11,21 @@ One-tap join for online classes on Google Meet, for the Mister Wiz (Escola de LÃ
 | `docs/SETUP-GUIDES-PT.md` | Step-by-step install guides in Portuguese (students per device, teachers) |
 | `docs/KICKOFF-PROMPT.md` | First message to paste into Claude Code to start the MVP |
 | `prototype/wiz-aula.html` | Clickable prototype of every screen; open it in any browser (runs in local demo mode) |
+| `src/` | The Next.js app (App Router, TypeScript, Tailwind) |
+
+## Running the app
+
+Needs Node.js 22.18 or newer.
+
+```bash
+npm install
+npm run dev        # http://localhost:3000
+npm test           # unit tests (node:test, no extra dependencies)
+npm run typecheck
+npm run lint
+```
+
+The app runs on mock data for now (`src/lib/mock-data.ts`); nothing is saved between reloads.
 
 ## Getting started with Claude Code
 
@@ -19,4 +34,4 @@ One-tap join for online classes on Google Meet, for the Mister Wiz (Escola de LÃ
 
 ## Status
 
-Prototype done (2026-09-28). MVP not started. See the roadmap in `docs/PLAN.md`.
+Prototype done (2026-09-28). Standalone Next.js PWA chosen. MVP milestone 1 (scaffold with the three screens on mock data) done; next is milestone 2, the Supabase schema. See the roadmap in `docs/PLAN.md`.
