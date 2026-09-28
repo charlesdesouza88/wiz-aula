@@ -12,6 +12,8 @@ One-tap join for online classes on Google Meet, for the Mister Wiz (Escola de LÃ
 | `docs/KICKOFF-PROMPT.md` | First message to paste into Claude Code to start the MVP |
 | `prototype/wiz-aula.html` | Clickable prototype of every screen; open it in any browser (runs in local demo mode) |
 | `src/` | The Next.js app (App Router, TypeScript, Tailwind) |
+| `supabase/` | Database migrations, row-level security and the dev seed |
+| `db/tests/` | Database tests (`npm run test:db`) |
 
 ## Running the app
 
@@ -23,9 +25,10 @@ npm run dev        # http://localhost:3000
 npm test           # unit tests (node:test, no extra dependencies)
 npm run typecheck
 npm run lint
+npm run test:db    # migrations + seed + RLS tests on a throwaway Postgres (needs Postgres server binaries)
 ```
 
-The app runs on mock data for now (`src/lib/mock-data.ts`); nothing is saved between reloads.
+The app still runs on mock data (`src/lib/mock-data.ts`); nothing is saved between reloads. The database schema is ready in `supabase/`: with Docker running, `npx supabase start` applies the migrations and `supabase/seed.sql`. Copy `.env.example` to `.env.local` for the variables the app will need.
 
 ## Getting started with Claude Code
 
@@ -34,4 +37,4 @@ The app runs on mock data for now (`src/lib/mock-data.ts`); nothing is saved bet
 
 ## Status
 
-Prototype done (2026-09-28). Standalone Next.js PWA chosen. MVP milestone 1 (scaffold with the three screens on mock data) done; next is milestone 2, the Supabase schema. See the roadmap in `docs/PLAN.md`.
+Prototype done (2026-09-28). Standalone Next.js PWA chosen. MVP milestones 1 (scaffold with the three screens on mock data) and 2 (Supabase schema, RLS and seed) done; next is milestone 3, access-code login. See the roadmap in `docs/PLAN.md`.

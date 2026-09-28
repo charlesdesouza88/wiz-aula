@@ -76,20 +76,29 @@ Lightning classes skip the cron: the API sends the alert the moment the teacher 
 | --- | --- | --- |
 | `schools` | id, name, city | One per franchise unit |
 | `turmas` | id, school_id, name, nivel, horario, teacher_id, meet_link | Fixed Meet link per turma |
-| `people` | id, school_id, role (student, teacher, admin), name, access_code_hash | No email or password for students |
+| `people` | id, school_id, role (student, teacher, admin), name | No email or password for students |
+| `access_codes` | person_id, code_hash | HMAC-SHA256 of the normalised code with a server secret; no client access |
+| `person_logins` | auth_user_id, person_id | Links a Supabase Auth user (one per signed-in device) to a person; written by the server after it checks the code |
 | `enrollments` | person_id, turma_id | A student can sit in more than one turma |
-| `aulas` | id, turma_id, type (scheduled, lightning), start_at, duration_min, meet_link, status, ping_at | Same shape as the prototype |
+| `aulas` | id, turma_id, type (scheduled, lightning), start_at, duration_min, meet_link, status (scheduled, live, ended), ping_at, reminder_sent_at, created_by | Same shape as the prototype; at most one live lightning class per turma |
 | `push_subscriptions` | person_id, endpoint, keys, platform, last_ok_at | One row per device; drop on 404/410 |
 | `join_events` | aula_id, person_id, joined_at | Attendance |
 
-Row-level security keeps each school's data separate: a student reads only their own turmas and aulas; only teachers of a turma write its aulas.
+Row-level security keeps each school's data separate: a student reads only their own turmas and aulas; only teachers of a turma (or a school admin) write its aulas. Rosters, access codes and logins are written only by server code with the service role.
+
+Schema details, as built in `supabase/migrations/`:
+
+- Meet links are checked in the database as well as in the app (`https://meet.google.com/xxx-yyyy-zzz` only).
+- A scheduled class is `scheduled` or `ended`; whether it is joinable comes from the clock (T-10 until its end). A lightning class is created `live`, and a trigger ends the turma's previous live lightning class in the same transaction.
+- The signed-in person is found through `person_logins` from `auth.uid()`, so the access-code login (milestone 3) only has to create a Supabase Auth session for the device and link it.
+- `npm run test:db` applies the migrations and seed to a throwaway Postgres and runs the RLS tests in `db/tests/rls.sql` (no Docker needed).
 
 ## Roadmap
 
 | Phase | Duration (proposed) | Content | Gate to next phase |
 | --- | --- | --- | --- |
 | Prototype | done 2026-09-28 | Clickable demo with shared class data (`prototype/wiz-aula.html`) | Teacher OK on the demo |
-| MVP | about 3 weeks; milestone 1 (scaffold) done 2026-09-28 | PWA (manifest, service worker, install screens), access-code login, Supabase schema + RLS, VAPID Web Push, T-10 reminder cron, in-app setup guide | One pilot turma installed |
+| MVP | about 3 weeks; milestones 1 (scaffold) and 2 (database) done 2026-09-28 | PWA (manifest, service worker, install screens), access-code login, Supabase schema + RLS, VAPID Web Push, T-10 reminder cron, in-app setup guide | One pilot turma installed |
 | Pilot | about 4 weeks | 3 turmas (adult, teens, kids) | ≥90% installed with alerts on; median alert-to-Meet < 20 s; < 5% alerts missed |
 | Rollout | after pilot | Roster import, access-code cards, attendance, optional Play Store via TWA | — |
 

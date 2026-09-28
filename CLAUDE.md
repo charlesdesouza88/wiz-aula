@@ -48,7 +48,7 @@ No other blues or greens except semantic success text.
 
 ## Data model (summary)
 
-`schools`, `turmas` (fixed `meet_link` per turma), `people` (role: student/teacher/admin, `access_code_hash`), `enrollments`, `aulas` (`type`, `start_at`, `duration_min`, `meet_link`, `status`, `ping_at`), `push_subscriptions`, `join_events`. RLS: students read only their turmas and aulas; only a turma's teachers write its aulas; schools are isolated from each other. Full table in `docs/PLAN.md`.
+`schools`, `turmas` (fixed `meet_link` per turma), `people` (role: student/teacher/admin), `access_codes` (`code_hash`, server only), `person_logins` (Supabase Auth user → person, server only), `enrollments`, `aulas` (`type`, `start_at`, `duration_min`, `meet_link`, `status`, `ping_at`, `reminder_sent_at`), `push_subscriptions`, `join_events`. RLS: students read only their turmas and aulas; only a turma's teachers (or a school admin) write its aulas; schools are isolated from each other. Full table in `docs/PLAN.md`; schema in `supabase/migrations/`, dev seed in `supabase/seed.sql`.
 
 ## Quality bar — always double-check every file
 
@@ -66,7 +66,8 @@ Before calling any task done, re-read every file you created or changed and chec
 - `src/lib/store.ts` in-memory mock store; Supabase replaces it in milestone 2
 - `src/content/guides.tsx` install guide text, kept identical to `docs/SETUP-GUIDES-PT.md`
 - Files in `src/lib` import each other with `.ts` extensions so `node --test` can run them without a build step.
-- Checks: `npm run typecheck`, `npm run lint`, `npm test`, `npm run build`.
+- `supabase/migrations/` schema and RLS; `supabase/seed.sql` dev data; `db/tests/rls.sql` RLS tests run by `npm run test:db` (plain Postgres plus `db/tests/supabase-stub.sql`, no Docker). Add a new migration file for every schema change; never edit one that has shipped.
+- Checks: `npm run typecheck`, `npm run lint`, `npm test`, `npm run test:db`, `npm run build`.
 
 ## Working agreements
 
