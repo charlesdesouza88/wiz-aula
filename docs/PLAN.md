@@ -89,7 +89,7 @@ Row-level security keeps each school's data separate: a student reads only their
 | Phase | Duration (proposed) | Content | Gate to next phase |
 | --- | --- | --- | --- |
 | Prototype | done 2026-09-28 | Clickable demo with shared class data (`prototype/wiz-aula.html`) | Teacher OK on the demo |
-| MVP | about 3 weeks | PWA (manifest, service worker, install screens), access-code login, Supabase schema + RLS, VAPID Web Push, T-10 reminder cron, in-app setup guide | One pilot turma installed |
+| MVP | about 3 weeks; milestone 1 (scaffold) done 2026-09-28 | PWA (manifest, service worker, install screens), access-code login, Supabase schema + RLS, VAPID Web Push, T-10 reminder cron, in-app setup guide | One pilot turma installed |
 | Pilot | about 4 weeks | 3 turmas (adult, teens, kids) | ≥90% installed with alerts on; median alert-to-Meet < 20 s; < 5% alerts missed |
 | Rollout | after pilot | Roster import, access-code cards, attendance, optional Play Store via TWA | — |
 
@@ -106,7 +106,7 @@ Row-level security keeps each school's data separate: a student reads only their
 
 ## Open decisions
 
-- [ ] Standalone product or a module inside the existing Mister Wiz app (misterwiz.fun, FastAPI + Flutter)? This plan assumes a standalone Next.js PWA on the Speak Easy stack.
+- [x] Standalone product or a module inside the existing Mister Wiz app? **Decided 2026-09-28: standalone Next.js PWA** on the Speak Easy stack.
 - [ ] Domain (for example a subdomain of misterwiz.fun).
 - [ ] Which three turmas run the pilot.
 - [ ] Whether Speak Easy reuses the same codebase for its live and lightning classes.
