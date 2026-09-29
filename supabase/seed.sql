@@ -1,14 +1,10 @@
 -- Local development seed. Never run against production.
 --
--- Access codes (dev only), hashed with the dev pepper below. The app must use
--- the same normalisation: upper case, spaces and hyphens removed, then
--- hex(HMAC-SHA256(code, ACCESS_CODE_PEPPER)).
+-- Access codes (dev only). Hashes use the database's own random pepper
+-- (private.settings), so the same codes work in every dev database.
 --   Teacher Chuck:    WIZ-PROF-01
 --   Student Ana:      WIZ-ALUNO-01
 --   Student Bruno:    WIZ-ALUNO-02
-
-create temporary table seed_config as
-select 'wiz-aula-dev-pepper'::text as pepper;
 
 insert into public.schools (id, name, city) values
   ('00000000-0000-4000-8000-000000000001', 'Mister Wiz · Escola de Líderes', null);
@@ -23,8 +19,7 @@ insert into public.people (id, school_id, role, name)
 select id, '00000000-0000-4000-8000-000000000001', role, name from seed_people;
 
 insert into public.access_codes (person_id, code_hash)
-select p.id, encode(extensions.hmac(p.code, c.pepper, 'sha256'), 'hex')
-  from seed_people p, seed_config c;
+select p.id, private.hash_access_code(p.code) from seed_people p;
 
 insert into public.turmas (id, school_id, name, nivel, horario, teacher_id, meet_link) values
   ('00000000-0000-4000-8000-000000000301', '00000000-0000-4000-8000-000000000001',
@@ -49,4 +44,4 @@ select '00000000-0000-4000-8000-000000000301', 'scheduled', 'Lesson 12', s.start
  order by s.start_at
  limit 1;
 
-drop table seed_config, seed_people;
+drop table seed_people;

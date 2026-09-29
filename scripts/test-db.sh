@@ -21,7 +21,7 @@ cleanup() { run pg_ctl -D "$work/data" -m immediate stop >/dev/null 2>&1 || true
 trap cleanup EXIT
 
 run initdb -D "$work/data" -U postgres -A trust --no-sync >/dev/null
-run pg_ctl -D "$work/data" -o "-k $work -c listen_addresses='' -c fsync=off" -l "$work/log" -w start >/dev/null
+run pg_ctl -D "$work/data" -o "-k $work -c listen_addresses='' -c fsync=off -c wal_level=logical" -l "$work/log" -w start >/dev/null
 
 psql_run() { run psql -h "$work" -U postgres -d postgres -v ON_ERROR_STOP=1 -q -X "$@"; }
 

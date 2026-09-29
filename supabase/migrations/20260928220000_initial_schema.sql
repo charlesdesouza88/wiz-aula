@@ -39,14 +39,15 @@ create index people_school_idx on public.people (school_id);
 create table public.access_codes (
   person_id uuid primary key references public.people (id) on delete cascade,
   -- Hex HMAC-SHA256 of the normalised code (upper case, spaces and hyphens
-  -- removed) keyed with the server-side ACCESS_CODE_PEPPER. Deterministic so
-  -- the login can look it up; the code itself is never stored.
+  -- removed), keyed with a per-database pepper (see the access-code login
+  -- migration). Deterministic so the login can look it up; the code itself
+  -- is never stored.
   code_hash text not null unique check (code_hash ~ '^[0-9a-f]{64}$'),
   created_at timestamptz not null default now()
 );
 
 -- Links a Supabase Auth user (one per signed-in device) to a person.
--- Written only by the server after it verifies an access code (milestone 3).
+-- Written only by redeem_access_code() after it checks the code.
 create table public.person_logins (
   auth_user_id uuid primary key references auth.users (id) on delete cascade,
   person_id uuid not null references public.people (id) on delete cascade,
@@ -240,9 +241,9 @@ revoke all on all tables in schema public from anon;
 revoke all on all sequences in schema public from anon;
 
 grant select, insert, update, delete on all tables in schema public to authenticated;
--- Server only (service role).
+-- Not writable by clients (the login migration lets a device read and delete its own login).
 revoke all on public.person_logins, public.access_codes from authenticated;
--- Rosters are managed on the server, where codes are hashed.
+-- Rosters are managed with the service role.
 revoke insert, update, delete on public.people from authenticated;
 
 -- ---------------------------------------------------------------------------
@@ -265,7 +266,7 @@ create policy "read own school" on public.schools
   using (id = (select private.current_school_id()));
 
 -- people: yourself; staff see everyone in their school. Rosters are managed
--- with the service role (codes must be hashed on the server).
+-- with the service role.
 create policy "read self or school as staff" on public.people
   for select to authenticated
   using (
@@ -273,7 +274,7 @@ create policy "read self or school as staff" on public.people
     or ((select private.is_staff()) and school_id = (select private.current_school_id()))
   );
 
--- person_logins, access_codes: no policies, service role only.
+-- access_codes: no policies, never readable by clients.
 
 -- turmas
 create policy "read visible turmas" on public.turmas

@@ -98,8 +98,11 @@ insert into public.person_logins (auth_user_id, person_id) values
 select test.ok((select count(*) from public.people where school_id = '00000000-0000-4000-8000-000000000001' and role = 'student') = 2,
                'seed has two students');
 select test.ok((select code_hash from public.access_codes where person_id = :chuck)
-               = encode(extensions.hmac('WIZPROF01', 'wiz-aula-dev-pepper', 'sha256'), 'hex'),
-               'seed hashes codes with HMAC-SHA256 and the dev pepper');
+               = encode(extensions.hmac('WIZPROF01', (select access_code_pepper from private.settings), 'sha256'), 'hex'),
+               'seed hashes codes with HMAC-SHA256 and the database pepper');
+select test.ok(private.hash_access_code(' wiz-prof 01 ') = private.hash_access_code('WIZPROF01'),
+               'codes are normalised before hashing');
+select test.ok(length((select access_code_pepper from private.settings)) = 64, 'the pepper is random 32 bytes');
 select test.ok((select count(*) from public.aulas where turma_id = :masters and start_at > now() - interval '1 hour') = 1,
                'seed has one upcoming Masters class');
 select test.ok((select extract(hour from start_at at time zone 'America/Sao_Paulo') = 19 from public.aulas where turma_id = :masters),
@@ -139,7 +142,9 @@ set role authenticated;
 set request.jwt.claims = '{"sub": "10000000-0000-4000-8000-000000000999", "role": "authenticated"}';
 select test.ok(test.count_rows('select * from public.aulas') = 0, 'unlinked user sees no aulas');
 select test.ok(test.count_rows('select * from public.people') = 0, 'unlinked user sees no people');
-select test.fails('select * from public.person_logins', '42501', 'clients cannot read person_logins');
+select test.ok(test.count_rows('select * from public.person_logins') = 0, 'clients see no one else''s device logins');
+select test.fails($$insert into public.person_logins values ('10000000-0000-4000-8000-000000000999', '00000000-0000-4000-8000-000000000101')$$,
+                  '42501', 'clients cannot link a device to a person themselves');
 select test.fails('select * from public.access_codes', '42501', 'clients cannot read access codes');
 reset role;
 
@@ -150,7 +155,7 @@ reset role;
 set role authenticated;
 set request.jwt.claims = '{"sub": "10000000-0000-4000-8000-000000000201", "role": "authenticated"}';
 select test.ok(test.count_rows('select * from public.schools') = 1, 'student sees only her school');
-select test.ok(test.count_rows('select * from public.people') = 1, 'student sees only herself');
+select test.ok((select string_agg(name, ', ' order by name) from public.people) = 'Ana (teste), Chuck', 'student sees herself and her teacher only');
 select test.ok(test.count_rows('select * from public.turmas') = 1, 'student sees only her turma');
 select test.ok(test.count_rows('select * from public.aulas') = 1, 'student sees only her turma''s aulas');
 select test.ok(test.count_rows('select * from public.enrollments') = 1, 'student sees only her enrolment');
@@ -244,6 +249,53 @@ set request.jwt.claims = '{"sub": "10000000-0000-4000-8000-00000000b101", "role"
 select test.ok(test.count_rows(format('select * from public.aulas where turma_id = %L', :masters)) = 0,
                'schools are isolated: no Masters classes for the other school');
 select test.ok(test.count_rows('select * from public.people') = 2, 'other teacher sees only his school''s people');
+reset role;
+
+-- ---------------------------------------------------------------------------
+-- Access-code login
+-- ---------------------------------------------------------------------------
+
+insert into auth.users (id) values
+  ('20000000-0000-4000-8000-000000000001'), ('20000000-0000-4000-8000-000000000002'),
+  ('20000000-0000-4000-8000-000000000003');
+
+set role anon;
+select test.fails($$select * from public.redeem_access_code('WIZ-ALUNO-01')$$, '42501', 'anonymous visitors cannot redeem codes');
+reset role;
+
+set role authenticated;
+set request.jwt.claims = '';
+select test.fails($$select * from public.redeem_access_code('WIZ-ALUNO-01')$$, '28000', 'redeeming needs a signed-in device');
+
+-- A new device (anonymous auth user) redeems Ana's code, typed loosely.
+set request.jwt.claims = '{"sub": "20000000-0000-4000-8000-000000000001", "role": "authenticated"}';
+select test.ok(test.count_rows('select * from public.aulas') = 0, 'a new device sees nothing before the code');
+select test.ok((select name from public.redeem_access_code(' wiz aluno-01 ')) = 'Ana (teste)', 'the right code signs Ana in');
+select test.ok(test.count_rows('select * from public.person_logins') = 1, 'the device reads its own login');
+select test.ok(test.count_rows(format('select * from public.aulas where turma_id = %L', :masters)) >= 1, 'after the code Ana sees her classes');
+select test.ok((select string_agg(name, ', ' order by name) from public.people) = 'Ana (teste), Chuck',
+               'a student sees herself and her teacher, nobody else');
+select test.fails('select * from private.settings', '42501', 'clients cannot read the pepper');
+select test.fails($$select private.hash_access_code('x')$$, '42501', 'clients cannot hash codes');
+select test.ok(test.rows_changed('delete from public.person_logins where auth_user_id <> auth.uid()') = 0,
+               'a device cannot sign other devices out');
+select test.ok(test.rows_changed('delete from public.person_logins') = 1, 'signing out removes the device login');
+select test.ok(test.count_rows('select * from public.aulas') = 0, 'after signing out the device sees nothing');
+
+-- Wrong codes, then rate limiting per device.
+set request.jwt.claims = '{"sub": "20000000-0000-4000-8000-000000000002", "role": "authenticated"}';
+select test.ok(test.count_rows($$select * from public.redeem_access_code('WIZ-ERRADO-1')$$) = 0, 'an unknown code signs nobody in');
+select test.count_rows($$select * from public.redeem_access_code('WIZ-ERRADO-2')$$);
+select test.count_rows($$select * from public.redeem_access_code('WIZ-ERRADO-3')$$);
+select test.count_rows($$select * from public.redeem_access_code('WIZ-ERRADO-4')$$);
+select test.count_rows($$select * from public.redeem_access_code('WIZ-ERRADO-5')$$);
+select test.fails($$select * from public.redeem_access_code('WIZ-ALUNO-01')$$, 'P0001',
+                  'after 5 wrong codes the device must wait, even with the right code');
+
+-- Another device is not blocked, and the teacher code gives teacher access.
+set request.jwt.claims = '{"sub": "20000000-0000-4000-8000-000000000003", "role": "authenticated"}';
+select test.ok((select role from public.redeem_access_code('WIZ-PROF-01')) = 'teacher', 'the teacher code signs Chuck in');
+select test.ok(test.count_rows('select * from public.people') = 4, 'Chuck''s new device sees his school');
 reset role;
 
 \echo 'All database tests passed.'
