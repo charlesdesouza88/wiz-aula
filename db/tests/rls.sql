@@ -298,4 +298,71 @@ select test.ok((select role from public.redeem_access_code('WIZ-PROF-01')) = 'te
 select test.ok(test.count_rows('select * from public.people') = 4, 'Chuck''s new device sees his school');
 reset role;
 
+-- ---------------------------------------------------------------------------
+-- Push alerts
+-- ---------------------------------------------------------------------------
+
+select test.ok((select count(*) from cron.jobs where jobname = 'wiz-aula-reminders' and schedule = '* * * * *') = 1,
+               'the reminder job runs every minute');
+
+set role authenticated;
+set request.jwt.claims = '{"sub": "20000000-0000-4000-8000-000000000003", "role": "authenticated"}';
+select test.ok(public.vapid_public_key() is null, 'no public key is offered before push is configured');
+reset role;
+
+-- Starting a class before push is configured sends nothing.
+delete from net.requests;
+update public.aulas set status = 'ended' where type = 'lightning' and status = 'live';
+insert into public.aulas (turma_id, type, start_at, meet_link, status, ping_at)
+values ('00000000-0000-4000-8000-000000000301', 'lightning', now(), 'https://meet.google.com/abc-defg-hij', 'live', now());
+select test.ok((select count(*) from net.requests) = 0, 'nothing is sent while push is not configured');
+
+update private.settings set vapid_public_key = 'test-public', vapid_private_key = 'test-private',
+                            functions_url = 'https://example.test/functions/v1';
+
+set role authenticated;
+select test.ok(public.vapid_public_key() = 'test-public', 'signed-in devices get the VAPID public key');
+select test.fails('select * from public.push_config()', '42501', 'clients cannot read the push secrets');
+select test.fails('select private.send_due_reminders()', '42501', 'clients cannot trigger reminders');
+
+-- Chuck's device (signed in above) starts, re-sends, renames and ends a lightning class.
+select test.ok(test.rows_changed(format($$insert into public.aulas (turma_id, type, start_at, meet_link, status, ping_at)
+  values (%L, 'lightning', now(), 'https://meet.google.com/xyz-abcd-efg', 'live', now())$$, :masters)) = 1, 'teacher starts a lightning class');
+reset role;
+select test.ok((select count(*) from net.requests) = 1, 'starting a lightning class sends one alert request');
+select test.ok((select body ->> 'kind' from net.requests order by id desc limit 1) = 'live'
+               and (select url from net.requests order by id desc limit 1) = 'https://example.test/functions/v1/send-push',
+               'the request goes to the send-push function as a live alert');
+select test.ok((select headers ->> 'x-push-secret' from net.requests order by id desc limit 1)
+               = (select push_secret from private.settings), 'the request carries the shared secret');
+
+set role authenticated;
+select test.rows_changed(format('update public.aulas set ping_at = now() + interval ''1 second'' where turma_id = %L and status = ''live''', :masters));
+reset role;
+select test.ok((select count(*) from net.requests) = 2, '"Avisar de novo" sends another alert request');
+
+set role authenticated;
+select test.rows_changed(format('update public.aulas set title = ''Renomeada'' where turma_id = %L and status = ''live''', :masters));
+select test.rows_changed(format('update public.aulas set status = ''ended'' where turma_id = %L and status = ''live''', :masters));
+reset role;
+select test.ok((select count(*) from net.requests) = 2, 'renaming or ending a class sends nothing');
+
+-- T-10 reminders: once per class, only inside the window.
+insert into public.aulas (id, turma_id, type, title, start_at, meet_link, status) values
+  ('00000000-0000-4000-8000-00000000c001', :masters, 'scheduled', 'Em 5 minutos', now() + interval '5 minutes', 'https://meet.google.com/abc-defg-hij', 'scheduled'),
+  ('00000000-0000-4000-8000-00000000c002', :masters, 'scheduled', 'Em 30 minutos', now() + interval '30 minutes', 'https://meet.google.com/abc-defg-hij', 'scheduled'),
+  ('00000000-0000-4000-8000-00000000c003', :masters, 'scheduled', 'Já começou', now() - interval '5 minutes', 'https://meet.google.com/abc-defg-hij', 'scheduled');
+select private.send_due_reminders();
+select test.ok((select reminder_sent_at is not null from public.aulas where id = '00000000-0000-4000-8000-00000000c001'),
+               'a class starting in 5 minutes gets its reminder');
+select test.ok((select reminder_sent_at is null from public.aulas where id = '00000000-0000-4000-8000-00000000c002'),
+               'a class starting in 30 minutes waits');
+select test.ok((select reminder_sent_at is null from public.aulas where id = '00000000-0000-4000-8000-00000000c003'),
+               'a class that already started gets no reminder');
+select test.ok((select count(*) from net.requests where body ->> 'aula_id' = '00000000-0000-4000-8000-00000000c001' and body ->> 'kind' = 'reminder') = 1,
+               'the reminder request is sent');
+select private.send_due_reminders();
+select test.ok((select count(*) from net.requests where body ->> 'aula_id' = '00000000-0000-4000-8000-00000000c001') = 1,
+               'each class is reminded only once');
+
 \echo 'All database tests passed.'

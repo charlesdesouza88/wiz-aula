@@ -29,3 +29,23 @@ $$;
 grant usage on schema public to anon, authenticated, service_role;
 
 create publication supabase_realtime;
+
+-- pg_net: record requests instead of sending them.
+create schema net;
+create table net.requests (
+  id bigint generated always as identity primary key,
+  url text, headers jsonb, body jsonb, created timestamptz default now()
+);
+create function net.http_post(url text, body jsonb default '{}', params jsonb default '{}',
+                              headers jsonb default '{}', timeout_milliseconds integer default 5000)
+returns bigint language sql as $$
+  insert into net.requests (url, headers, body) values (url, headers, body) returning id
+$$;
+
+-- pg_cron: record scheduled jobs.
+create schema cron;
+create table cron.jobs (jobname text primary key, schedule text, command text);
+create function cron.schedule(job_name text, schedule text, command text) returns bigint
+language sql as $$
+  insert into cron.jobs values (job_name, schedule, command) returning 1::bigint
+$$;
