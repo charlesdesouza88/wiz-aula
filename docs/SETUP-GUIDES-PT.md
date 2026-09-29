@@ -41,7 +41,7 @@ Textos exatos da aba "Como instalar" do app. Mantenha este arquivo igual ao que 
 ## Professor
 
 1. **Crie um link fixo para cada turma.** No Google Agenda, crie um evento repetido da turma com Google Meet. O link fica o mesmo toda semana. Copie esse link.
-2. **Guarde o link na turma.** No Wiz Aula, em Professor › Turmas, crie a turma e cole o link fixo.
+2. **Guarde o link na turma.** Entre no Wiz Aula com o seu código de professor. Em Turmas, crie a turma e cole o link fixo.
 3. **Libere a entrada.** No Meet, abra os controles do organizador. Se a opção existir na sua conta, deixe o acesso como Aberto. Se não, aceite cada aluno quando ele pedir para participar.
 4. **Aula agendada.** Escolha dia e horário e toque em Agendar. O botão do aluno acende 10 minutos antes.
 5. **Aula relâmpago.** Cole o link e toque em Começar agora. Todos recebem o aviso na hora.

@@ -92,13 +92,20 @@ Schema details, as built in `supabase/migrations/`:
 - A scheduled class is `scheduled` or `ended`; whether it is joinable comes from the clock (T-10 until its end). A lightning class is created `live`, and a trigger ends the turma's previous live lightning class in the same transaction.
 - The signed-in person is found through `person_logins` from `auth.uid()`, so the access-code login (milestone 3) only has to create a Supabase Auth session for the device and link it.
 - `npm run test:db` applies the migrations and seed to a throwaway Postgres and runs the RLS tests in `db/tests/rls.sql` (no Docker needed).
+- A scheduled class opening (T-10) also ends a live lightning class of the same turma, so students only ever see one button. The app applies this rule when it shows classes (`resolveOverlaps` in `src/lib/aulas.ts`).
+
+### Sign-in (decided 2026-09-29)
+
+Each device signs in with Supabase **anonymous sign-in** (no email or phone stored), and only when someone submits a code. The browser then calls the database function `redeem_access_code(code)`, which normalises and hashes the code with a per-database pepper (`private.settings`), links the device's auth user to the person in `person_logins`, and blocks a device after 5 wrong codes (20 per IP) in 10 minutes. "Sair" deletes that link. The app has no server secrets: the browser uses the publishable key and RLS does the rest. Live updates come from Supabase Realtime on `aulas` and `turmas`, with a one-minute poll and a reload when the app returns to the foreground as fallbacks.
+
+The development project is `wiz-aula` (Supabase, region sa-east-1).
 
 ## Roadmap
 
 | Phase | Duration (proposed) | Content | Gate to next phase |
 | --- | --- | --- | --- |
 | Prototype | done 2026-09-28 | Clickable demo with shared class data (`prototype/wiz-aula.html`) | Teacher OK on the demo |
-| MVP | about 3 weeks; milestones 1 (scaffold) and 2 (database) done 2026-09-28 | PWA (manifest, service worker, install screens), access-code login, Supabase schema + RLS, VAPID Web Push, T-10 reminder cron, in-app setup guide | One pilot turma installed |
+| MVP | about 3 weeks; milestones 1–3 (scaffold, database, code login with live data) done by 2026-09-29 | PWA (manifest, service worker, install screens), access-code login, Supabase schema + RLS, VAPID Web Push, T-10 reminder cron, in-app setup guide | One pilot turma installed |
 | Pilot | about 4 weeks | 3 turmas (adult, teens, kids) | ≥90% installed with alerts on; median alert-to-Meet < 20 s; < 5% alerts missed |
 | Rollout | after pilot | Roster import, access-code cards, attendance, optional Play Store via TWA | — |
 

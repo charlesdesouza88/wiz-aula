@@ -8,7 +8,7 @@ Read `docs/PLAN.md` before any architectural change. Next.js 16 differs from old
 
 - **Interface language: Portuguese (pt-BR).** Code, comments, commits and docs in English.
 - **One primary action per screen.** The student home shows the next class and the **Entrar na aula** button, nothing else competes with it.
-- **Two class types:** `scheduled` (button lights up 10 min before start, reminder alert at T-10) and `lightning` / *aula relâmpago* (starts now, alert to the whole turma at once; starting a new one ends the previous live lightning class of that turma).
+- **Two class types:** `scheduled` (button lights up 10 min before start, reminder alert at T-10) and `lightning` / *aula relâmpago* (starts now, alert to the whole turma at once; starting a new one ends the previous live lightning class of that turma). A scheduled class opening at T-10 also ends a live lightning class of the same turma, so a student only ever has one button.
 - **No self-registration.** Students sign in with a school-issued access code. No email, password or phone for students.
 - **Google Meet stays the video tool.** We only store and deliver the link. Links are validated and normalised to `https://meet.google.com/xxx-yyyy-zzz` (accept full URL, URL with query string, or the bare 10-letter code with or without hyphens).
 - **Accessibility floor:** base font 18px, touch targets ≥ 56px (join button ≥ 80px), text-size control (100 / 112.5 / 125%), WCAG AA contrast in light and dark, visible focus, `prefers-reduced-motion` respected, plain Portuguese copy with no jargon.
@@ -48,7 +48,7 @@ No other blues or greens except semantic success text.
 
 ## Data model (summary)
 
-`schools`, `turmas` (fixed `meet_link` per turma), `people` (role: student/teacher/admin), `access_codes` (`code_hash`, server only), `person_logins` (Supabase Auth user → person, server only), `enrollments`, `aulas` (`type`, `start_at`, `duration_min`, `meet_link`, `status`, `ping_at`, `reminder_sent_at`), `push_subscriptions`, `join_events`. RLS: students read only their turmas and aulas; only a turma's teachers (or a school admin) write its aulas; schools are isolated from each other. Full table in `docs/PLAN.md`; schema in `supabase/migrations/`, dev seed in `supabase/seed.sql`.
+`schools`, `turmas` (fixed `meet_link` per turma), `people` (role: student/teacher/admin), `access_codes` (`code_hash`, never readable by clients), `person_logins` (Supabase Auth user → person, written only by `redeem_access_code()`), `enrollments`, `aulas` (`type`, `start_at`, `duration_min`, `meet_link`, `status`, `ping_at`, `reminder_sent_at`), `push_subscriptions`, `join_events`. RLS: students read only their turmas and aulas; only a turma's teachers (or a school admin) write its aulas; schools are isolated from each other. Full table in `docs/PLAN.md`; schema in `supabase/migrations/`, dev seed in `supabase/seed.sql`.
 
 ## Quality bar — always double-check every file
 
@@ -61,9 +61,10 @@ Before calling any task done, re-read every file you created or changed and chec
 
 ## Code map
 
-- `src/app/` pages: `/` (Aluno), `/professor`, `/como-instalar`
+- `src/app/` pages: `/` (code login, then the student or teacher screen by role) and `/como-instalar`
+- Login: each device signs in anonymously with Supabase Auth, then `redeem_access_code(code)` (a database function) checks the code, rate-limits failures and links the device in `person_logins`. The code pepper lives in `private.settings`, random per database. There are no server secrets; the browser talks to Supabase directly under RLS.
 - `src/lib/` pure logic with unit tests next to it (`*.test.ts`, run with `npm test`): `meet.ts` (link normalisation), `aulas.ts` (10-minute window, lightning replacement), `time.ts` (UTC ↔ America/Sao_Paulo), `format.ts` (pt-BR dates and countdown)
-- `src/lib/store.ts` in-memory mock store; Supabase replaces it in milestone 2
+- `src/lib/supabase.ts` browser client; `session.ts` sign-in state; `data.ts` turmas/classes with Realtime + polling, and the teacher actions; `database.types.ts` generated from the schema (regenerate after each migration)
 - `src/content/guides.tsx` install guide text, kept identical to `docs/SETUP-GUIDES-PT.md`
 - Files in `src/lib` import each other with `.ts` extensions so `node --test` can run them without a build step.
 - `supabase/migrations/` schema and RLS; `supabase/seed.sql` dev data; `db/tests/rls.sql` RLS tests run by `npm run test:db` (plain Postgres plus `db/tests/supabase-stub.sql`, no Docker). Add a new migration file for every schema change; never edit one that has shipped.

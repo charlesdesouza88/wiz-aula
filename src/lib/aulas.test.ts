@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { isLive, isOver, lightningToReplace, studentView, teacherList, type Aula } from "./aulas.ts";
+import { isLive, isOver, resolveOverlaps, studentView, teacherList, type Aula } from "./aulas.ts";
 
 const MIN = 60_000;
 const T = Date.parse("2026-10-01T22:00:00Z");
@@ -41,33 +41,24 @@ test("an ended class is never live", () => {
   assert.equal(isOver(a, T - 30 * MIN), true);
 });
 
-test("only live lightning classes of the same turma are replaced", () => {
+test("a scheduled class opening ends a live lightning class of the same turma", () => {
   const aulas = [
-    aula({ id: "l1", type: "lightning", status: "live" }),
-    aula({ id: "l2", type: "lightning", status: "ended" }),
-    aula({ id: "s1" }),
-    aula({ id: "l3", type: "lightning", status: "live", turmaId: "t2" }),
+    aula({ id: "flash", type: "lightning", status: "live", startAt: T - 15 * MIN }),
+    aula({ id: "sched", startAt: T }),
+    aula({ id: "other", type: "lightning", status: "live", startAt: T - 15 * MIN, turmaId: "t2" }),
   ];
-  assert.deepEqual(
-    lightningToReplace(aulas, "t1", T + MIN).map((a) => a.id),
-    ["l1"],
-  );
+  const before = resolveOverlaps(aulas, T - 10 * MIN - 1);
+  assert.equal(before.find((a) => a.id === "flash")?.status, "live");
+  const after = resolveOverlaps(aulas, T - 10 * MIN);
+  assert.equal(after.find((a) => a.id === "flash")?.status, "ended");
+  assert.equal(after.find((a) => a.id === "other")?.status, "live", "other turmas are untouched");
+  assert.equal(studentView(aulas.slice(0, 2), T - 5 * MIN).live?.id, "sched", "the student sees one button");
 });
 
-test("student view: latest live class wins, upcoming sorted", () => {
-  const aulas = [
-    aula({ id: "later", startAt: T + 7 * 24 * 60 * MIN }),
-    aula({ id: "now", startAt: T }),
-    aula({ id: "flash", type: "lightning", status: "live", startAt: T + 5 * MIN }),
-    aula({ id: "soon", startAt: T + 2 * 24 * 60 * MIN }),
-  ];
-  const v = studentView(aulas, "t1", T + 6 * MIN);
-  assert.equal(v.live?.id, "flash");
-  assert.deepEqual(
-    v.upcoming.map((a) => a.id),
-    ["soon", "later"],
-  );
-  assert.deepEqual(studentView([], "t1", T), { live: null, upcoming: [] });
+test("a lightning class started after the scheduled class opened stays live", () => {
+  const aulas = [aula({ id: "sched", startAt: T }), aula({ id: "flash", type: "lightning", status: "live", startAt: T + 5 * MIN })];
+  assert.equal(resolveOverlaps(aulas, T + 6 * MIN).find((a) => a.id === "flash")?.status, "live");
+  assert.equal(studentView(aulas, T + 6 * MIN).live?.id, "flash", "the newest class wins");
 });
 
 test("teacher list hides classes that ended more than a day ago", () => {

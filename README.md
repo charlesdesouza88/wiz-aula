@@ -28,7 +28,7 @@ npm run lint
 npm run test:db    # migrations + seed + RLS tests on a throwaway Postgres (needs Postgres server binaries)
 ```
 
-The app still runs on mock data (`src/lib/mock-data.ts`); nothing is saved between reloads. The database schema is ready in `supabase/`: with Docker running, `npx supabase start` applies the migrations and `supabase/seed.sql`. Copy `.env.example` to `.env.local` for the variables the app will need.
+The app needs a Supabase project: copy `.env.example` to `.env.local` and fill in the project URL and publishable key, and allow anonymous sign-ins in the project (Authentication › Sign In / Providers). Apply `supabase/migrations/` and, for development, `supabase/seed.sql`; with Docker running, `npx supabase start` does both locally. Dev access codes are listed at the top of the seed file.
 
 ## Getting started with Claude Code
 
@@ -37,4 +37,4 @@ The app still runs on mock data (`src/lib/mock-data.ts`); nothing is saved betwe
 
 ## Status
 
-Prototype done (2026-09-28). Standalone Next.js PWA chosen. MVP milestones 1 (scaffold with the three screens on mock data) and 2 (Supabase schema, RLS and seed) done; next is milestone 3, access-code login. See the roadmap in `docs/PLAN.md`.
+Prototype done (2026-09-28). Standalone Next.js PWA chosen. MVP milestones 1 (scaffold), 2 (Supabase schema, RLS and seed) and 3 (access-code login, screens connected to Supabase with live updates) done; next is milestone 5, the installable PWA with push alerts. See the roadmap in `docs/PLAN.md`.

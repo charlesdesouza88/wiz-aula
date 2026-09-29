@@ -3,18 +3,17 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-// Until access-code login (milestone 3) decides who sees what, every view is reachable here.
+// The access code decides whether "/" is the student or the teacher screen.
 const ITEMS = [
-  { href: "/", label: "Aluno" },
-  { href: "/professor", label: "Professor" },
+  { href: "/", label: "Minhas aulas" },
   { href: "/como-instalar", label: "Como instalar" },
 ];
 
 export function MainNav() {
   const pathname = usePathname();
   return (
-    <nav aria-label="Ver como" className="desktop:max-w-[36rem]">
-      <ul className="grid grid-cols-3 gap-1.5 rounded-2xl bg-surface-2 p-1.5">
+    <nav aria-label="Menu" className="desktop:max-w-[36rem]">
+      <ul className="grid grid-cols-2 gap-1.5 rounded-2xl bg-surface-2 p-1.5">
         {ITEMS.map((item) => {
           const current = pathname === item.href;
           return (

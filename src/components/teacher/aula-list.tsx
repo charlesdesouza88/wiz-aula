@@ -4,16 +4,25 @@ import { useEffect, useState } from "react";
 import { isLive, isOver, teacherList, type Aula, type Turma } from "@/lib/aulas";
 import { formatDay, formatTime } from "@/lib/format";
 import { shortMeetLink } from "@/lib/meet";
-import { deleteAula, endAula, pingAula } from "@/lib/store";
+import { deleteAula, endAula, pingAula } from "@/lib/data";
+import { FormMessage, type Message } from "@/components/form-message";
+
+type Act = (action: () => Promise<void>) => void;
 
 export function AulaList({ aulas, turma, now }: { aulas: Aula[]; turma: Turma | null; now: number }) {
+  const [message, setMessage] = useState<Message>(null);
   const list = turma ? teacherList(aulas, turma.id, now) : [];
+  const act: Act = (action) => {
+    setMessage(null);
+    action().catch(() => setMessage({ kind: "err", text: "Não deu para salvar agora. Confira a internet e tente de novo." }));
+  };
   return (
     <div className="card">
       <h2 className="eyebrow">Aulas desta turma</h2>
+      <FormMessage message={message} />
       <ul className="flex flex-col">
         {list.length ? (
-          list.map((a) => <AulaRow key={a.id} aula={a} now={now} />)
+          list.map((a) => <AulaRow key={a.id} aula={a} now={now} act={act} />)
         ) : (
           <li className="py-3 text-[0.95rem] text-muted">
             Nenhuma aula para esta turma. Agende uma ou comece uma aula relâmpago.
@@ -31,7 +40,7 @@ function StatusPill({ aula, live, over }: { aula: Aula; live: boolean; over: boo
   return <span className="pill bg-surface-2 text-ink">Agendada</span>;
 }
 
-function AulaRow({ aula, now }: { aula: Aula; now: number }) {
+function AulaRow({ aula, now, act }: { aula: Aula; now: number; act: Act }) {
   const live = isLive(aula, now);
   const over = isOver(aula, now);
   return (
@@ -49,17 +58,17 @@ function AulaRow({ aula, now }: { aula: Aula; now: number }) {
       </span>
       {live ? (
         <span className="flex flex-wrap gap-2">
-          <button type="button" className="btn-ghost" onClick={() => pingAula(aula.id)}>
+          <button type="button" className="btn-ghost" onClick={() => act(() => pingAula(aula.id))}>
             Avisar de novo
           </button>
-          <button type="button" className="btn-ghost" onClick={() => endAula(aula.id)}>
+          <button type="button" className="btn-ghost" onClick={() => act(() => endAula(aula.id))}>
             Encerrar
           </button>
         </span>
       ) : (
         !over && (
           <span className="flex flex-wrap gap-2">
-            <DeleteButton id={aula.id} />
+            <DeleteButton id={aula.id} act={act} />
           </span>
         )
       )}
@@ -68,7 +77,7 @@ function AulaRow({ aula, now }: { aula: Aula; now: number }) {
 }
 
 /** Two taps to delete: the first asks for confirmation for 4 seconds. */
-function DeleteButton({ id }: { id: string }) {
+function DeleteButton({ id, act }: { id: string; act: Act }) {
   const [confirming, setConfirming] = useState(false);
 
   useEffect(() => {
@@ -81,7 +90,7 @@ function DeleteButton({ id }: { id: string }) {
     <button
       type="button"
       className="btn-ghost"
-      onClick={() => (confirming ? deleteAula(id) : setConfirming(true))}
+      onClick={() => (confirming ? act(() => deleteAula(id)) : setConfirming(true))}
     >
       {confirming ? "Toque para confirmar" : "Excluir"}
     </button>

@@ -4,13 +4,14 @@ import { useState, type FormEvent } from "react";
 import type { Turma } from "@/lib/aulas";
 import { formatDay, formatTime } from "@/lib/format";
 import { MEET_LINK_ERROR, normalizeMeetLink, shortMeetLink } from "@/lib/meet";
-import { scheduleAulas } from "@/lib/store";
+import { scheduleAulas } from "@/lib/data";
+import type { Person } from "@/lib/session";
 import { parseDateTimeInput, tomorrowInputValue } from "@/lib/time";
-import { FormMessage, type Message } from "./form-message";
+import { FormMessage, type Message } from "@/components/form-message";
 
 const REPEAT_WEEKS = 4;
 
-export function ScheduleForm({ turma, now }: { turma: Turma | null; now: number }) {
+export function ScheduleForm({ person, turma, now }: { person: Person; turma: Turma | null; now: number }) {
   const [date, setDate] = useState(() => tomorrowInputValue(now));
   const [time, setTime] = useState("19:00");
   const [duration, setDuration] = useState("60");
@@ -18,8 +19,9 @@ export function ScheduleForm({ turma, now }: { turma: Turma | null; now: number 
   const [link, setLink] = useState(turma?.meetLink ? shortMeetLink(turma.meetLink) : "");
   const [repeat, setRepeat] = useState(false);
   const [message, setMessage] = useState<Message>(null);
+  const [busy, setBusy] = useState(false);
 
-  function submit(e: FormEvent) {
+  async function submit(e: FormEvent) {
     e.preventDefault();
     if (!turma) return setMessage({ kind: "err", text: "Crie uma turma primeiro, em Turmas." });
     if (!date || !time) return setMessage({ kind: "err", text: "Escolha o dia e o horário da aula." });
@@ -32,7 +34,14 @@ export function ScheduleForm({ turma, now }: { turma: Turma | null; now: number 
     if (!meetLink) return setMessage({ kind: "err", text: MEET_LINK_ERROR });
 
     const weeks = repeat ? REPEAT_WEEKS : 1;
-    scheduleAulas(turma.id, { startAt, durationMin: Number(duration), title: title.trim(), meetLink, weeks });
+    setBusy(true);
+    try {
+      await scheduleAulas(person, turma, { startAt, durationMin: Number(duration), title: title.trim(), meetLink, weeks });
+    } catch {
+      return setMessage({ kind: "err", text: "Não deu para salvar agora. Confira a internet e tente de novo." });
+    } finally {
+      setBusy(false);
+    }
     setTitle("");
     setMessage({
       kind: "ok",
@@ -44,7 +53,7 @@ export function ScheduleForm({ turma, now }: { turma: Turma | null; now: number 
   }
 
   return (
-    <form className="card" onSubmit={submit} noValidate>
+    <form className="card" onSubmit={submit} onChange={() => setMessage(null)} noValidate>
       <h2 className="text-[1.5rem] font-extrabold">Agendar aula</h2>
       <div className="grid grid-cols-1 gap-3 min-[421px]:grid-cols-2">
         <div className="field">
@@ -99,7 +108,7 @@ export function ScheduleForm({ turma, now }: { turma: Turma | null; now: number 
         Repetir toda semana (próximas {REPEAT_WEEKS} semanas)
       </label>
       <FormMessage message={message} />
-      <button className="btn" type="submit">
+      <button className="btn" type="submit" disabled={busy}>
         Agendar
       </button>
     </form>

@@ -1,65 +1,61 @@
 "use client";
 
 import { useState } from "react";
-import { studentView, type Turma } from "@/lib/aulas";
-import type { Device } from "@/lib/device";
-import { formatDay, formatTime } from "@/lib/format";
-import { useDevice, useNow, usePref, writePref } from "@/lib/hooks";
-import { PREF } from "@/lib/pref-keys";
-import { useData, type Data } from "@/lib/store";
+import { studentView } from "@/lib/aulas";
 import { enableChime } from "@/lib/chime";
+import { recordJoin, useData } from "@/lib/data";
+import { formatDay, formatTime } from "@/lib/format";
+import { useDevice, useNow } from "@/lib/hooks";
+import type { Person } from "@/lib/session";
 import { Hero } from "./hero";
 import { LiveAlert } from "./live-alert";
-import { TurmaPicker } from "./turma-picker";
 
-export function StudentHome() {
-  const data = useData();
+export function StudentHome({ person }: { person: Person }) {
+  const { data, error } = useData(person);
   const now = useNow();
-  const turmaId = usePref(PREF.turma);
   const device = useDevice();
-
-  if (!data || now === null || turmaId === undefined || !device) {
-    return <p className="text-muted">Carregando…</p>;
-  }
-
-  const turma = turmaId ? data.turmas.find((t) => t.id === turmaId) : undefined;
-  if (!turma) {
-    return <TurmaPicker turmas={data.turmas} onPick={(id) => writePref(PREF.turma, id)} />;
-  }
-  return <StudentMain key={turma.id} data={data} turma={turma} now={now} device={device} />;
-}
-
-function StudentMain({
-  data,
-  turma,
-  now,
-  device,
-}: {
-  data: Data;
-  turma: Turma;
-  now: number;
-  device: Device;
-}) {
   const [sound, setSound] = useState(false);
-  const { live, upcoming } = studentView(data.aulas, turma.id, now);
+
+  if (!data || now === null || !device) {
+    return <p className={error ? "msg-err" : "text-muted"}>{error ? "Não deu para carregar as aulas. Confira a internet." : "Carregando…"}</p>;
+  }
+  if (!data.turmas.length) {
+    return (
+      <div className="card">
+        <h1 className="text-[1.5rem] font-extrabold">Olá, {person.name}!</h1>
+        <p className="text-muted">Você ainda não está em nenhuma turma. Fale com a escola.</p>
+      </div>
+    );
+  }
+
+  const turmaById = new Map(data.turmas.map((t) => [t.id, t]));
+  const { live, upcoming } = studentView(data.aulas, now);
   const later = live ? upcoming : upcoming.slice(1);
+  const heroTurma = turmaById.get((live ?? upcoming[0])?.turmaId ?? "") ?? data.turmas[0];
+  const several = data.turmas.length > 1;
 
   return (
     <div className="flex flex-col gap-4 desktop:grid desktop:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)] desktop:items-start desktop:gap-x-6">
-      <div className="flex flex-wrap items-center justify-between gap-2.5 desktop:col-span-2">
-        <p className="text-[0.95rem]">
-          Turma <b>{turma.name}</b> · {turma.nivel}
-        </p>
-        <button
-          type="button"
-          onClick={() => writePref(PREF.turma, null)}
-          className="min-h-14 cursor-pointer font-bold text-primary underline underline-offset-[3px]"
-        >
-          Trocar turma
-        </button>
-      </div>
+      <p className="text-[0.95rem] desktop:col-span-2">
+        Olá, <b>{person.name}</b> ·{" "}
+        {several ? (
+          <>Turmas {data.turmas.map((t) => t.name).join(", ")}</>
+        ) : (
+          <>
+            Turma <b>{data.turmas[0].name}</b> · {data.turmas[0].nivel}
+          </>
+        )}
+      </p>
 
-      <Hero turma={turma} live={live} next={upcoming[0] ?? null} now={now} device={device} />
+      <Hero
+        turma={heroTurma}
+        showTurma={several}
+        live={live}
+        next={upcoming[0] ?? null}
+        now={now}
+        device={device}
+        onJoin={(aula) => recordJoin(person, aula.id)}
+      />
 
       <div className="flex flex-col gap-4">
         <div className="card">
@@ -97,7 +93,10 @@ function StudentMain({
                     <b className="tabular-nums">
                       {formatDay(a.startAt, now)} · {formatTime(a.startAt)}
                     </b>
-                    <span className="text-[0.95rem] text-muted">{a.title || "Aula"}</span>
+                    <span className="text-[0.95rem] text-muted">
+                      {several && `${turmaById.get(a.turmaId)?.name ?? ""} · `}
+                      {a.title || "Aula"}
+                    </span>
                   </span>
                   <span className="pill bg-surface-2 text-ink">Agendada</span>
                 </li>
@@ -109,7 +108,7 @@ function StudentMain({
         </div>
       </div>
 
-      <LiveAlert turma={turma} live={live} sound={sound} />
+      <LiveAlert turma={live ? (turmaById.get(live.turmaId) ?? heroTurma) : heroTurma} live={live} sound={sound} />
     </div>
   );
 }

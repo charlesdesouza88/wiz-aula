@@ -8,6 +8,8 @@ export type Turma = {
   name: string;
   nivel: string;
   horario: string;
+  teacherId: string | null;
+  /** Teacher's name, when the signed-in person may see it. */
   teacher: string;
   meetLink: string | null;
 };
@@ -47,15 +49,36 @@ export function aulasOf(aulas: Aula[], turmaId: string): Aula[] {
   return aulas.filter((a) => a.turmaId === turmaId).sort((x, y) => x.startAt - y.startAt);
 }
 
+/**
+ * Applies the rule the database cannot see: a live lightning class ends when a
+ * later scheduled class of the same turma opens (T-10), so students only ever
+ * have one button. Returns the list with those lightning classes marked ended.
+ */
+export function resolveOverlaps(aulas: Aula[], now: number): Aula[] {
+  return aulas.map((a) => {
+    if (a.type !== "lightning" || a.status === "ended") return a;
+    const replaced = aulas.some(
+      (b) =>
+        b.turmaId === a.turmaId &&
+        b.type === "scheduled" &&
+        b.status !== "ended" &&
+        b.startAt - JOIN_WINDOW_MS > a.startAt &&
+        now >= b.startAt - JOIN_WINDOW_MS,
+    );
+    return replaced ? { ...a, status: "ended" as const } : a;
+  });
+}
+
 export type StudentView = {
-  /** The class to join right now, if any (the most recently started one). */
+  /** The class to join right now, if any (the most recently opened one). */
   live: Aula | null;
   /** Classes that have not opened yet, soonest first. */
   upcoming: Aula[];
 };
 
-export function studentView(aulas: Aula[], turmaId: string, now: number): StudentView {
-  const list = aulasOf(aulas, turmaId);
+/** What a student sees across all of their turmas. */
+export function studentView(aulas: Aula[], now: number): StudentView {
+  const list = resolveOverlaps(aulas, now).sort((x, y) => x.startAt - y.startAt);
   const live = list.filter((a) => isLive(a, now));
   const upcoming = list.filter((a) => !isLive(a, now) && !isOver(a, now));
   return { live: live.at(-1) ?? null, upcoming };
@@ -63,10 +86,5 @@ export function studentView(aulas: Aula[], turmaId: string, now: number): Studen
 
 /** Classes shown to the teacher: everything not over, plus classes that ended in the last 24 hours. */
 export function teacherList(aulas: Aula[], turmaId: string, now: number): Aula[] {
-  return aulasOf(aulas, turmaId).filter((a) => !isOver(a, now) || now - endsAt(a) < DAY);
-}
-
-/** Lightning classes that must end when a new lightning class starts in the same turma. */
-export function lightningToReplace(aulas: Aula[], turmaId: string, now: number): Aula[] {
-  return aulasOf(aulas, turmaId).filter((a) => a.type === "lightning" && isLive(a, now));
+  return resolveOverlaps(aulasOf(aulas, turmaId), now).filter((a) => !isOver(a, now) || now - endsAt(a) < DAY);
 }

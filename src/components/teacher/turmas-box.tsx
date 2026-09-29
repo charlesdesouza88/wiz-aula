@@ -3,17 +3,19 @@
 import { useState, type FormEvent } from "react";
 import type { Turma } from "@/lib/aulas";
 import { MEET_LINK_ERROR, normalizeMeetLink, shortMeetLink } from "@/lib/meet";
-import { addTurma } from "@/lib/store";
-import { FormMessage, type Message } from "./form-message";
+import { addTurma } from "@/lib/data";
+import type { Person } from "@/lib/session";
+import { FormMessage, type Message } from "@/components/form-message";
 
-export function TurmasBox({ turmas }: { turmas: Turma[] }) {
+export function TurmasBox({ person, turmas }: { person: Person; turmas: Turma[] }) {
   const [name, setName] = useState("");
   const [nivel, setNivel] = useState("");
   const [horario, setHorario] = useState("");
   const [link, setLink] = useState("");
   const [message, setMessage] = useState<Message>(null);
+  const [busy, setBusy] = useState(false);
 
-  function submit(e: FormEvent) {
+  async function submit(e: FormEvent) {
     e.preventDefault();
     const n = name.trim();
     if (!n || !nivel.trim() || !horario.trim())
@@ -21,7 +23,14 @@ export function TurmasBox({ turmas }: { turmas: Turma[] }) {
     const raw = link.trim();
     const meetLink = raw ? normalizeMeetLink(raw) : null;
     if (raw && !meetLink) return setMessage({ kind: "err", text: MEET_LINK_ERROR });
-    addTurma({ name: n, nivel: nivel.trim(), horario: horario.trim(), teacher: "", meetLink });
+    setBusy(true);
+    try {
+      await addTurma(person, { name: n, nivel: nivel.trim(), horario: horario.trim(), meetLink });
+    } catch {
+      return setMessage({ kind: "err", text: "Não deu para salvar agora. Confira a internet e tente de novo." });
+    } finally {
+      setBusy(false);
+    }
     setName("");
     setNivel("");
     setHorario("");
@@ -51,7 +60,7 @@ export function TurmasBox({ turmas }: { turmas: Turma[] }) {
           </li>
         ))}
       </ul>
-      <form className="flex flex-col gap-3" onSubmit={submit} noValidate>
+      <form className="flex flex-col gap-3" onSubmit={submit} onChange={() => setMessage(null)} noValidate>
         <h3 className="eyebrow">Nova turma</h3>
         <div className="grid grid-cols-1 gap-3 min-[421px]:grid-cols-2">
           <div className="field">
@@ -98,7 +107,7 @@ export function TurmasBox({ turmas }: { turmas: Turma[] }) {
           />
         </div>
         <FormMessage message={message} />
-        <button className="btn" type="submit">
+        <button className="btn" type="submit" disabled={busy}>
           Criar turma
         </button>
       </form>

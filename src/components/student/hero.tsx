@@ -3,10 +3,19 @@ import type { Device } from "@/lib/device";
 import { formatCountdown, formatDay, formatTime } from "@/lib/format";
 import { CameraIcon } from "@/components/icons";
 
-type Props = { turma: Turma; live: Aula | null; next: Aula | null; now: number; device: Device };
+type Props = {
+  turma: Turma;
+  /** Name the turma when the student is in more than one. */
+  showTurma: boolean;
+  live: Aula | null;
+  next: Aula | null;
+  now: number;
+  device: Device;
+  onJoin: (aula: Aula) => void;
+};
 
 /** The one primary action on the student screen: the next class and the join button. */
-export function Hero({ turma, live, next, now, device }: Props) {
+export function Hero({ turma, showTurma, live, next, now, device, onJoin }: Props) {
   const base = "flex flex-col gap-3.5 rounded-3xl border px-5 py-6 shadow-card tablet:px-7 tablet:py-8";
 
   if (live) {
@@ -21,6 +30,7 @@ export function Hero({ turma, live, next, now, device }: Props) {
           {live.type === "lightning" ? "Aula relâmpago" : live.title || "Aula de inglês"}
         </h1>
         <p className="text-muted">
+          {showTurma && `${turma.name} · `}
           {turma.teacher && `Com o professor ${turma.teacher} · `}
           {early ? "começa" : "começou"} às {formatTime(live.startAt)}
         </p>
@@ -28,6 +38,7 @@ export function Hero({ turma, live, next, now, device }: Props) {
           href={live.meetLink}
           target="_blank"
           rel="noopener"
+          onClick={() => onJoin(live)}
           className="join flex min-h-[84px] items-center justify-center gap-3 rounded-[20px] bg-gold px-4 text-center font-display text-[1.7rem] font-extrabold text-on-gold no-underline hover:brightness-105"
         >
           <CameraIcon className="size-8 flex-none" />
@@ -61,6 +72,7 @@ export function Hero({ turma, live, next, now, device }: Props) {
         </div>
         <p className="text-muted">
           {formatCountdown(next.startAt - now)}
+          {showTurma && ` · ${turma.name}`}
           {next.title && ` · ${next.title}`}
         </p>
         <p

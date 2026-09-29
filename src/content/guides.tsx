@@ -230,7 +230,7 @@ export const GUIDES: Record<GuideId, { steps: Step[]; warning?: ReactNode }> = {
         title: "Guarde o link na turma",
         body: (
           <>
-            No Wiz Aula, em <K>Professor › Turmas</K>, crie a turma e cole o link fixo.
+            Entre no Wiz Aula com o seu código de professor. Em <K>Turmas</K>, crie a turma e cole o link fixo.
           </>
         ),
       },

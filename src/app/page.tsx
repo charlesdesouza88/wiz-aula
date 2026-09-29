@@ -1,5 +1,5 @@
-import { StudentHome } from "@/components/student/student-home";
+import { Home } from "@/components/home";
 
-export default function AlunoPage() {
-  return <StudentHome />;
+export default function HomePage() {
+  return <Home />;
 }
