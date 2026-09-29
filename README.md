@@ -30,6 +30,8 @@ npm run test:db    # migrations + seed + RLS tests on a throwaway Postgres (need
 
 The app needs a Supabase project: copy `.env.example` to `.env.local` and fill in the project URL and publishable key, and allow anonymous sign-ins in the project (Authentication › Sign In / Providers). Apply `supabase/migrations/` and, for development, `supabase/seed.sql`; with Docker running, `npx supabase start` does both locally. Dev access codes are listed at the top of the seed file.
 
+Push alerts need a one-time setup per Supabase project: deploy `supabase/functions/send-push` (`npx supabase functions deploy send-push --no-verify-jwt`) and set the VAPID keys and functions URL in `private.settings` (see "Push alerts and install" in `docs/PLAN.md`).
+
 ## Getting started with Claude Code
 
 1. Clone the repo and open it in Claude Code (terminal, desktop or web).
@@ -37,4 +39,4 @@ The app needs a Supabase project: copy `.env.example` to `.env.local` and fill i
 
 ## Status
 
-Prototype done (2026-09-28). Standalone Next.js PWA chosen. MVP milestones 1 (scaffold), 2 (Supabase schema, RLS and seed) and 3 (access-code login, screens connected to Supabase with live updates) done; next is milestone 5, the installable PWA with push alerts. See the roadmap in `docs/PLAN.md`.
+Prototype done (2026-09-28). Standalone Next.js PWA chosen. MVP milestones 1 (scaffold), 2 (Supabase schema, RLS and seed) and 3 (access-code login, screens connected to Supabase with live updates) done; milestone 5 (installable PWA, push alerts, T-10 reminders) done too; next is deploying to Vercel and testing on real phones. See the roadmap in `docs/PLAN.md`.

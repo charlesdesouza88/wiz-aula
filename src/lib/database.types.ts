@@ -269,6 +269,11 @@ export type Database = {
     };
     Views: { [_ in never]: never };
     Functions: {
+      push_config: {
+        Args: never;
+        Returns: { push_secret: string; vapid_private_key: string; vapid_public_key: string; vapid_subject: string }[];
+      };
+      vapid_public_key: { Args: never; Returns: string };
       redeem_access_code: {
         Args: { code: string };
         Returns: {

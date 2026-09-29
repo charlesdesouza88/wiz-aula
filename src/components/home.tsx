@@ -1,6 +1,7 @@
 "use client";
 
 import { resetData } from "@/lib/data";
+import { removeDeviceSubscription } from "@/lib/push";
 import { signOut, useSession } from "@/lib/session";
 import { isSupabaseConfigured } from "@/lib/supabase";
 import { LoginForm } from "./login-form";
@@ -27,6 +28,7 @@ export function Home() {
           type="button"
           className="min-h-14 cursor-pointer px-1 font-bold text-primary underline underline-offset-[3px]"
           onClick={async () => {
+            await removeDeviceSubscription();
             await signOut();
             resetData();
           }}

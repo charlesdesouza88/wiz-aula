@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { Atkinson_Hyperlegible, Baloo_2 } from "next/font/google";
 import { InlineScript } from "@/components/inline-script";
 import { MainNav } from "@/components/main-nav";
+import { PwaSetup } from "@/components/pwa-setup";
 import { SizeButton } from "@/components/size-button";
 import { PREF } from "@/lib/pref-keys";
 import { BrandMark } from "@/components/icons";
@@ -14,6 +15,10 @@ const atkinson = Atkinson_Hyperlegible({ variable: "--font-atkinson", subsets: [
 export const metadata: Metadata = {
   title: "Wiz Aula",
   description: "Entre na sua aula do Google Meet com um toque.",
+  applicationName: "Wiz Aula",
+  // iPhone and iPad: opened from the Home Screen icon, it runs full screen and can receive alerts.
+  appleWebApp: { capable: true, title: "Wiz Aula", statusBarStyle: "default" },
+  formatDetection: { telephone: false },
 };
 
 export const viewport: Viewport = {
@@ -49,6 +54,7 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
           </header>
           <MainNav />
           <main className="flex flex-col gap-4">{children}</main>
+          <PwaSetup />
         </div>
       </body>
     </html>

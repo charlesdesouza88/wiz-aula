@@ -100,12 +100,23 @@ Each device signs in with Supabase **anonymous sign-in** (no email or phone stor
 
 The development project is `wiz-aula` (Supabase, region sa-east-1).
 
+### Push alerts and install (built 2026-09-29)
+
+- **Install:** web app manifest and icons (`src/app/manifest.ts`, `public/icons/`, `src/app/apple-icon.png`). Chrome and Edge get a one-tap **Instalar** card (`beforeinstallprompt`); an iPhone or iPad in a Safari tab gets a card explaining Compartilhar › Adicionar à Tela de Início instead of the alerts button.
+- **Subscribe:** the student taps **Ativar avisos**; the permission prompt opens straight from that tap, the service worker (`public/sw.js`) subscribes with the VAPID public key (read from the database with `vapid_public_key()`), and the subscription is saved in `push_subscriptions` under RLS. Sair deletes this device's subscription.
+- **Send:** everything runs inside Supabase, so the Next.js app still has no secrets.
+  - A trigger on `aulas` calls the Edge Function `send-push` through `pg_net` when a lightning class starts or the teacher taps Avisar de novo.
+  - A `pg_cron` job runs `private.send_due_reminders()` every minute and asks for a reminder once per scheduled class when it is 10 minutes or less from starting.
+  - `send-push` checks a shared secret, loads the class and the enrolled students' subscriptions with the service role, sends with the `web-push` package and deletes subscriptions that answer 404/410.
+- **Tap:** the notification opens the Meet link directly (the Meet app on phones). A re-sent alert replaces the previous one (same tag).
+- **Per-project setup** (done for `wiz-aula`): apply the migrations, deploy `supabase/functions/send-push` with JWT verification off (it checks its own secret), and set `vapid_public_key`, `vapid_private_key` (`npx web-push generate-vapid-keys`) and `functions_url` (`https://<ref>.supabase.co/functions/v1`) in `private.settings`. Until those are set, no alert is sent and the app hides the alerts card.
+
 ## Roadmap
 
 | Phase | Duration (proposed) | Content | Gate to next phase |
 | --- | --- | --- | --- |
 | Prototype | done 2026-09-28 | Clickable demo with shared class data (`prototype/wiz-aula.html`) | Teacher OK on the demo |
-| MVP | about 3 weeks; milestones 1–3 (scaffold, database, code login with live data) done by 2026-09-29 | PWA (manifest, service worker, install screens), access-code login, Supabase schema + RLS, VAPID Web Push, T-10 reminder cron, in-app setup guide | One pilot turma installed |
+| MVP | about 3 weeks; milestones 1–3 (scaffold, database, code login with live data) and 5 (installable PWA, push alerts, T-10 reminders) done by 2026-09-29 | PWA (manifest, service worker, install screens), access-code login, Supabase schema + RLS, VAPID Web Push, T-10 reminder cron, in-app setup guide | One pilot turma installed |
 | Pilot | about 4 weeks | 3 turmas (adult, teens, kids) | ≥90% installed with alerts on; median alert-to-Meet < 20 s; < 5% alerts missed |
 | Rollout | after pilot | Roster import, access-code cards, attendance, optional Play Store via TWA | — |
 

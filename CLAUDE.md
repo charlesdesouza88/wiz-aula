@@ -30,7 +30,7 @@ Same as Speak Easy so nothing new has to be learned or paid for:
 - Next.js (App Router) + TypeScript (strict) + Tailwind, deployed on Vercel
 - Supabase (Postgres, row-level security, Auth via custom access-code flow)
 - Web Push with VAPID keys (`web-push` package), service worker in `public/sw.js`
-- Cron for T-10 reminders: Vercel Cron or Supabase `pg_cron`, every minute
+- Cron for T-10 reminders: Supabase `pg_cron`, every minute; alerts are sent by the Edge Function `supabase/functions/send-push` (called through `pg_net`)
 - Fonts: Baloo 2 (display), Atkinson Hyperlegible (body)
 
 ## Brand tokens (Mister Wiz)
@@ -66,6 +66,7 @@ Before calling any task done, re-read every file you created or changed and chec
 - `src/lib/` pure logic with unit tests next to it (`*.test.ts`, run with `npm test`): `meet.ts` (link normalisation), `aulas.ts` (10-minute window, lightning replacement), `time.ts` (UTC ↔ America/Sao_Paulo), `format.ts` (pt-BR dates and countdown)
 - `src/lib/supabase.ts` browser client; `session.ts` sign-in state; `data.ts` turmas/classes with Realtime + polling, and the teacher actions; `database.types.ts` generated from the schema (regenerate after each migration)
 - `src/content/guides.tsx` install guide text, kept identical to `docs/SETUP-GUIDES-PT.md`
+- PWA and alerts: `src/app/manifest.ts`, `public/sw.js` (push + notification click), `src/lib/alerts.ts` (which alerts card to show, tested), `src/lib/push.ts` (subscribe on a tap), `src/lib/install.ts` (`beforeinstallprompt`); sending in `supabase/functions/send-push` (Deno, not part of the Next build)
 - Files in `src/lib` import each other with `.ts` extensions so `node --test` can run them without a build step.
 - `supabase/migrations/` schema and RLS; `supabase/seed.sql` dev data; `db/tests/rls.sql` RLS tests run by `npm run test:db` (plain Postgres plus `db/tests/supabase-stub.sql`, no Docker). Add a new migration file for every schema change; never edit one that has shipped.
 - Checks: `npm run typecheck`, `npm run lint`, `npm test`, `npm run test:db`, `npm run build`.

@@ -4,6 +4,7 @@ import { useNow, usePref, writePref } from "@/lib/hooks";
 import { PREF } from "@/lib/pref-keys";
 import { useData } from "@/lib/data";
 import type { Person } from "@/lib/session";
+import { InstallCard } from "@/components/install-card";
 import { AulaList } from "./aula-list";
 import { LightningForm } from "./lightning-form";
 import { ScheduleForm } from "./schedule-form";
@@ -53,6 +54,7 @@ export function TeacherHome({ person }: { person: Person }) {
         </div>
         <div className="flex flex-col gap-4">
           <AulaList aulas={data.aulas} turma={turma} now={now} />
+          <InstallCard />
           <TurmasBox person={person} turmas={turmas} />
         </div>
       </div>

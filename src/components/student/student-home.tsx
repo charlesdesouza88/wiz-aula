@@ -7,6 +7,8 @@ import { recordJoin, useData } from "@/lib/data";
 import { formatDay, formatTime } from "@/lib/format";
 import { useDevice, useNow } from "@/lib/hooks";
 import type { Person } from "@/lib/session";
+import { InstallCard } from "@/components/install-card";
+import { AlertsCard } from "./alerts-card";
 import { Hero } from "./hero";
 import { LiveAlert } from "./live-alert";
 
@@ -58,6 +60,8 @@ export function StudentHome({ person }: { person: Person }) {
       />
 
       <div className="flex flex-col gap-4">
+        <AlertsCard person={person} device={device} />
+        <InstallCard />
         <div className="card">
           <div className="flex items-center justify-between gap-3">
             <div>
