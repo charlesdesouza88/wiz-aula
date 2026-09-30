@@ -22,7 +22,7 @@ export function Hero({ turma, showTurma, live, next, now, device, onJoin }: Prop
     const early = now < live.startAt;
     return (
       <section className={`${base} border-gold bg-gold-soft`}>
-        <span className="inline-flex items-center gap-2 text-[0.9rem] font-bold tracking-[0.06em] text-live uppercase">
+        <span className="inline-flex items-center gap-2 text-[0.9rem] font-bold tracking-[0.06em] text-live-ink uppercase">
           <span className="live-dot" aria-hidden="true" />
           {early ? "Pode entrar" : "Aula ao vivo agora"}
         </span>
