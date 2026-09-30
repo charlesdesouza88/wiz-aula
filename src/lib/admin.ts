@@ -54,3 +54,25 @@ export async function newCode(personId: string): Promise<string> {
 export async function removePerson(personId: string): Promise<void> {
   check(await supabase().rpc("admin_remove_person", { person: personId }));
 }
+
+/** Renames the person; for a student, also sets their turmas (null leaves them as they are). */
+export async function updatePerson(personId: string, name: string, turmaIds: string[] | null): Promise<void> {
+  check(
+    await supabase().rpc("admin_update_person", {
+      person: personId,
+      name,
+      ...(turmaIds ? { turma_ids: turmaIds } : {}),
+    }),
+  );
+}
+
+/** Adds one student per name, all or nothing; returns each one's first code. */
+export async function addStudents(
+  names: string[],
+  turmaId: string | null,
+): Promise<{ id: string; name: string; code: string }[]> {
+  const rows = check(
+    await supabase().rpc("admin_add_students", { names, ...(turmaId ? { turma: turmaId } : {}) }),
+  );
+  return (rows ?? []).map((r) => ({ id: r.person_id, name: r.name, code: r.code }));
+}

@@ -209,25 +209,34 @@ html.wa-size-2 {
   }
 }
 
-/* Printing a new access code: only its card, in black on white. */
+/* Printing new access codes: only the code card or sheet, in black on white,
+   flowing over as many pages as a long list needs. */
 @media print {
-  body * {
-    visibility: hidden;
+  body:has(.print-card) {
+    background: #fff !important;
   }
-  .print-card,
-  .print-card * {
-    visibility: visible;
-    color: #000 !important;
+  body:has(.print-card) > div > :not(main),
+  body:has(.print-card) main *:not(:has(.print-card)):not(.print-card):not(.print-card *),
+  .no-print {
+    display: none !important;
   }
   .print-card {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
     background: #fff !important;
     border: 2px solid #000 !important;
   }
-  .no-print {
-    display: none !important;
+  .print-card * {
+    color: #000 !important;
+  }
+  .print-card:has(.code-sheet) {
+    border: none !important;
+    padding: 0 !important;
+  }
+  .code-sheet {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+  .code-sheet > li {
+    break-inside: avoid;
+    background: #fff !important;
+    border-color: #000 !important;
   }
 }

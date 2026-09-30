@@ -7,6 +7,8 @@ import { useData } from "@/lib/data";
 import type { RosterEntry, RosterFilter } from "@/lib/roster";
 import { useSession, type Person } from "@/lib/session";
 import { AddPersonForm } from "./add-person-form";
+import { BulkAddForm } from "./bulk-add-form";
+import { CodeSheet, type Batch } from "./code-sheet";
 import { CodeCard, type Issued } from "./code-card";
 import { RosterList } from "./roster-list";
 
@@ -34,6 +36,7 @@ function AdminHome({ person }: { person: Person }) {
   const [roster, setRoster] = useState<RosterEntry[] | null>(null);
   const [loadFailed, setLoadFailed] = useState(false);
   const [issued, setIssued] = useState<Issued | null>(null);
+  const [batch, setBatch] = useState<Batch | null>(null);
   const [filter, setFilter] = useState<RosterFilter>("all");
 
   // Bumped to reload the list: after every change and when the admin comes back to the app.
@@ -82,12 +85,23 @@ function AdminHome({ person }: { person: Person }) {
       <h1 className="text-[1.75rem] font-extrabold">Alunos e códigos</h1>
       <div className="flex flex-col gap-4 desktop:grid desktop:grid-cols-2 desktop:items-start desktop:gap-6">
         <div className="flex flex-col gap-4">
-          {issued && <CodeCard key={issued.code} issued={issued} onDone={() => setIssued(null)} />}
+          {batch && <CodeSheet key={batch.people[0]?.code} batch={batch} onDone={() => setBatch(null)} />}
+          {issued && !batch && <CodeCard key={issued.code} issued={issued} onDone={() => setIssued(null)} />}
           <AddPersonForm
             turmas={turmas}
             suggestedTurmaId={filterTurma}
             onAdded={(i) => {
+              setBatch(null);
               setIssued(i);
+              reload();
+            }}
+          />
+          <BulkAddForm
+            turmas={turmas}
+            suggestedTurmaId={filterTurma}
+            onAdded={(b) => {
+              setIssued(null);
+              setBatch(b);
               reload();
             }}
           />
@@ -98,8 +112,14 @@ function AdminHome({ person }: { person: Person }) {
           turmas={turmas}
           filter={filter}
           onFilter={setFilter}
-          onIssued={setIssued}
-          onRemoved={(id) => setIssued((i) => (i?.personId === id ? null : i))}
+          onIssued={(i) => {
+            setBatch(null);
+            setIssued(i);
+          }}
+          onRemoved={(id) => {
+            setIssued((i) => (i?.personId === id ? null : i));
+            setBatch((b) => (b ? { ...b, people: b.people.filter((p) => p.id !== id) } : b));
+          }}
           onChanged={reload}
         />
       </div>

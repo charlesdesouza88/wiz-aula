@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { codeMessage, filterRoster, roleLabel, statusLabel, type RosterEntry } from "./roster.ts";
+import { codeMessage, filterRoster, parseNames, roleLabel, statusLabel, type RosterEntry } from "./roster.ts";
 
 const entry = (over: Partial<RosterEntry>): RosterEntry => ({
   id: "x",
@@ -47,4 +47,10 @@ test("the code message greets by first name", () => {
     codeMessage("  Maria Souza ", "WIZ-7KQ9-M3XP", "https://wiz-aula.vercel.app"),
     "Olá, Maria! Seu código do Wiz Aula é WIZ-7KQ9-M3XP. Abra https://wiz-aula.vercel.app e digite o código para entrar nas aulas.",
   );
+});
+
+test("pasted names: one per line, blanks and repeats dropped, whole rows keep the name cell", () => {
+  assert.deepEqual(parseNames("Maria  Souza\r\n\n  João\nmaria souza\n"), ["Maria Souza", "João"]);
+  assert.deepEqual(parseNames("Chuck\tMasters\tAdults Book 4\t19:00\tAna Lima\t\n"), ["Ana Lima"]);
+  assert.deepEqual(parseNames("   \n\t\n"), []);
 });

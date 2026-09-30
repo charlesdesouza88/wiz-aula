@@ -50,3 +50,26 @@ export function codeMessage(name: string, code: string, appUrl: string): string 
   const first = name.trim().split(/\s+/)[0] ?? "";
   return `Olá${first ? `, ${first}` : ""}! Seu código do Wiz Aula é ${code}. Abra ${appUrl} e digite o código para entrar nas aulas.`;
 }
+
+/** Most names one list may add; the database enforces the same limit. */
+export const MAX_NAMES = 200;
+
+/**
+ * Names pasted from the roster spreadsheet, one per line. A line with several
+ * cells (a whole row pasted) keeps its last cell, where the template has the
+ * student's name. Blank lines and repeats are dropped.
+ */
+export function parseNames(text: string): string[] {
+  const seen = new Set<string>();
+  const names: string[] = [];
+  for (const line of text.split(/\r?\n/)) {
+    const cells = line.split("\t").map((c) => c.trim().replace(/\s+/g, " ")).filter(Boolean);
+    const name = cells[cells.length - 1];
+    if (!name) continue;
+    const key = name.toLocaleLowerCase("pt-BR");
+    if (seen.has(key)) continue;
+    seen.add(key);
+    names.push(name);
+  }
+  return names;
+}

@@ -7,6 +7,7 @@ import { filterRoster, roleLabel, statusLabel, type RosterEntry, type RosterFilt
 import { ConfirmButton } from "@/components/confirm-button";
 import { FormMessage, type Message } from "@/components/form-message";
 import type { Issued } from "./code-card";
+import { EditPersonForm } from "./edit-person-form";
 
 const OFFLINE = "Não deu agora. Confira a internet e tente de novo.";
 
@@ -42,15 +43,24 @@ export function RosterList({
   onChanged: () => void;
 }) {
   const [message, setMessage] = useState<Message>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const shown = roster ? filterRoster(roster, filter) : [];
 
   async function giveCode(e: RosterEntry) {
     setMessage(null);
     try {
       const code = await newCode(e.id);
-      onIssued({ personId: e.id, name: e.name, detail: personDetail(e, turmas), code });
+      onIssued({
+        personId: e.id,
+        name: e.name,
+        detail: personDetail(e, turmas),
+        code,
+      });
     } catch (err) {
-      setMessage({ kind: "err", text: adminError(err) === "offline" ? OFFLINE : "Não é possível mudar o código desta pessoa." });
+      setMessage({
+        kind: "err",
+        text: adminError(err) === "offline" ? OFFLINE : "Não é possível mudar o código desta pessoa.",
+      });
     }
     onChanged();
   }
@@ -62,7 +72,10 @@ export function RosterList({
       onRemoved(e.id);
       setMessage({ kind: "ok", text: `Removemos ${e.name}.` });
     } catch (err) {
-      setMessage({ kind: "err", text: adminError(err) === "offline" ? OFFLINE : "Não é possível remover esta pessoa." });
+      setMessage({
+        kind: "err",
+        text: adminError(err) === "offline" ? OFFLINE : "Não é possível remover esta pessoa.",
+      });
     }
     onChanged();
   }
@@ -86,8 +99,8 @@ export function RosterList({
         </select>
       </div>
       <p className="text-[0.95rem] text-muted">
-        <b>Novo código</b> serve para quem perdeu o código: o antigo para de funcionar e a pessoa entra de novo em
-        todos os aparelhos.
+        <b>Novo código</b> serve para quem perdeu o código: o antigo para de funcionar e a pessoa entra de novo em todos
+        os aparelhos.
       </p>
       <FormMessage message={message} />
       {!roster ? (
@@ -103,32 +116,57 @@ export function RosterList({
               key={e.id}
               className="flex flex-col gap-2.5 border-t border-line py-3 first:border-t-0 [overflow-wrap:anywhere]"
             >
-              <span className="flex flex-col">
-                <b>{e.name}</b>
-                <span className="text-[0.95rem] text-muted">{personDetail(e, turmas)}</span>
-                <span className={`text-[0.95rem] ${e.hasCode ? "text-muted" : "font-bold text-err-ink"}`}>
-                  {statusLabel(e)}
-                </span>
-              </span>
-              {e.role !== "admin" && (
-                <span className="flex flex-wrap gap-2">
-                  {e.hasCode ? (
-                    <ConfirmButton
-                      label="Novo código"
-                      confirmLabel="Toque de novo para trocar"
-                      onConfirm={() => void giveCode(e)}
-                    />
-                  ) : (
-                    <button type="button" className="btn-ghost" onClick={() => void giveCode(e)}>
-                      Criar código
-                    </button>
+              {editingId === e.id ? (
+                <EditPersonForm
+                  entry={e}
+                  turmas={turmas}
+                  onSaved={(name) => {
+                    setEditingId(null);
+                    setMessage({ kind: "ok", text: `${name}: dados salvos.` });
+                    onChanged();
+                  }}
+                  onCancel={() => setEditingId(null)}
+                />
+              ) : (
+                <>
+                  <span className="flex flex-col">
+                    <b>{e.name}</b>
+                    <span className="text-[0.95rem] text-muted">{personDetail(e, turmas)}</span>
+                    <span className={`text-[0.95rem] ${e.hasCode ? "text-muted" : "font-bold text-err-ink"}`}>
+                      {statusLabel(e)}
+                    </span>
+                  </span>
+                  {e.role !== "admin" && (
+                    <span className="flex flex-wrap gap-2">
+                      {e.hasCode ? (
+                        <ConfirmButton
+                          label="Novo código"
+                          confirmLabel="Toque de novo para trocar"
+                          onConfirm={() => void giveCode(e)}
+                        />
+                      ) : (
+                        <button type="button" className="btn-ghost" onClick={() => void giveCode(e)}>
+                          Criar código
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        className="btn-ghost"
+                        onClick={() => {
+                          setMessage(null);
+                          setEditingId(e.id);
+                        }}
+                      >
+                        Editar
+                      </button>
+                      <ConfirmButton
+                        label="Remover"
+                        confirmLabel="Toque de novo para remover"
+                        onConfirm={() => void remove(e)}
+                      />
+                    </span>
                   )}
-                  <ConfirmButton
-                    label="Remover"
-                    confirmLabel="Toque de novo para remover"
-                    onConfirm={() => void remove(e)}
-                  />
-                </span>
+                </>
               )}
             </li>
           ))}
