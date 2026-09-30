@@ -221,6 +221,47 @@ export async function addTurma(
   await load();
 }
 
+/** Edits a scheduled class; moving it re-arms its T-10 reminder in the database. */
+export async function updateAula(
+  id: string,
+  changes: { startAt: number; durationMin: number; title: string; meetLink: string },
+) {
+  check(
+    await supabase()
+      .from("aulas")
+      .update({
+        start_at: new Date(changes.startAt).toISOString(),
+        duration_min: changes.durationMin,
+        title: changes.title,
+        meet_link: changes.meetLink,
+      })
+      .eq("id", id),
+  );
+  await load();
+}
+
+export async function updateTurma(
+  id: string,
+  changes: { name: string; nivel: string; horario: string; meetLink: string | null },
+) {
+  check(
+    await supabase()
+      .from("turmas")
+      .update({ name: changes.name, nivel: changes.nivel, horario: changes.horario, meet_link: changes.meetLink })
+      .eq("id", id),
+  );
+  await load();
+}
+
+/** Deletes the turma with its classes and enrolments (the students stay in the school). */
+export async function deleteTurma(id: string) {
+  const { data, error } = await supabase().from("turmas").delete().eq("id", id).select("id");
+  if (error) throw error;
+  // RLS hides rows it refuses to delete; treat that as a failure, not silent success.
+  if (!data?.length) throw new Error("not allowed");
+  await load();
+}
+
 /** Attendance: fire and forget when a student taps "Entrar na aula". */
 export function recordJoin(person: Person, aulaId: string) {
   void supabase().from("join_events").insert({ aula_id: aulaId, person_id: person.id });

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { addWeeks, dayKey, parseDateTimeInput, tomorrowInputValue, zonedParts } from "./time.ts";
+import { addWeeks, dayKey, parseDateTimeInput, toDateTimeInputs, tomorrowInputValue, zonedParts } from "./time.ts";
 
 test("date and time inputs are read as São Paulo wall time", () => {
   assert.equal(parseDateTimeInput("2026-10-01", "19:00"), Date.parse("2026-10-01T22:00:00Z"));
@@ -33,4 +33,12 @@ test("addWeeks keeps the wall-clock time", () => {
 test("tomorrow follows the São Paulo date, not UTC", () => {
   assert.equal(tomorrowInputValue(Date.parse("2026-09-29T02:30:00Z")), "2026-09-29");
   assert.equal(tomorrowInputValue(Date.parse("2026-12-31T12:00:00Z")), "2027-01-01");
+});
+
+test("form inputs show São Paulo time and round-trip", () => {
+  const ts = Date.parse("2026-10-01T22:05:00Z");
+  assert.deepEqual(toDateTimeInputs(ts), { date: "2026-10-01", time: "19:05" });
+  const { date, time } = toDateTimeInputs(ts);
+  assert.equal(parseDateTimeInput(date, time), ts);
+  assert.deepEqual(toDateTimeInputs(Date.parse("2026-10-02T02:30:00Z")), { date: "2026-10-01", time: "23:30" });
 });

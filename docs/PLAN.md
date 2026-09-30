@@ -50,6 +50,8 @@ iPadOS reports itself as a Mac in the browser, so detect an iPad by touch suppor
 - **Aula relâmpago:** start now; ends any earlier live lightning class for that turma and alerts every student.
 - **Agendar aula:** date, time, duration, optional topic, optional weekly repeat (4 weeks).
 - Live class actions: **Avisar de novo** (re-send the alert) and **Encerrar** (turn the students' button off).
+- Scheduled classes can be **edited** (day, time, duration, subject, Meet link; moving a class re-arms its T-10 reminder) or **deleted** (two taps) until they open.
+- Turmas can be created, **edited** and **deleted** by their teacher (deleting removes its classes and enrolments; the students stay in the school).
 - Each turma keeps a fixed Meet link.
 
 **Admin / school (phase 2)**

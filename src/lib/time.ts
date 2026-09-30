@@ -84,3 +84,10 @@ export function tomorrowInputValue(ts: number): string {
   const d = new Date(Date.UTC(p.year, p.month - 1, p.day + 1));
   return d.toISOString().slice(0, 10);
 }
+
+/** Values for <input type="date"> and <input type="time"> showing `ts` in the school's time zone. */
+export function toDateTimeInputs(ts: number): { date: string; time: string } {
+  const p = zonedParts(ts);
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return { date: `${p.year}-${pad(p.month)}-${pad(p.day)}`, time: `${pad(p.hour)}:${pad(p.minute)}` };
+}

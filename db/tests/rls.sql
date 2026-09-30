@@ -221,8 +221,10 @@ select test.fails($$insert into public.turmas (school_id, name, teacher_id)
   '42501', 'teacher cannot create a turma in another school');
 select test.fails(format($$update public.turmas set teacher_id = null where id = %L$$, :masters),
   '42501', 'teacher cannot remove himself from his turma');
-select test.ok(test.rows_changed(format('delete from public.turmas where id = %L', :masters)) = 0,
-               'teacher cannot delete a turma');
+select test.ok(test.rows_changed($$delete from public.turmas where name = 'Teens 2 · tarde'$$) = 1,
+               'teacher deletes a turma he teaches');
+select test.ok(test.rows_changed(format('delete from public.turmas where id = %L', :outra_turma)) = 0,
+               'teacher cannot delete another school''s turma');
 select test.fails(format($$insert into public.enrollments values (%L, %L)$$, :ana, :outra_turma),
   '42501', 'teacher cannot enrol students');
 reset role;
@@ -364,5 +366,13 @@ select test.ok((select count(*) from net.requests where body ->> 'aula_id' = '00
 select private.send_due_reminders();
 select test.ok((select count(*) from net.requests where body ->> 'aula_id' = '00000000-0000-4000-8000-00000000c001') = 1,
                'each class is reminded only once');
+
+-- Moving a class re-arms its reminder; other edits do not.
+update public.aulas set title = 'Novo assunto' where id = '00000000-0000-4000-8000-00000000c001';
+select test.ok((select reminder_sent_at is not null from public.aulas where id = '00000000-0000-4000-8000-00000000c001'),
+               'renaming a reminded class keeps it reminded');
+update public.aulas set start_at = now() + interval '2 days' where id = '00000000-0000-4000-8000-00000000c001';
+select test.ok((select reminder_sent_at is null from public.aulas where id = '00000000-0000-4000-8000-00000000c001'),
+               'moving a class to another time re-arms its reminder');
 
 \echo 'All database tests passed.'
