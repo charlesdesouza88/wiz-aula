@@ -67,18 +67,39 @@ export function useSession(): Session {
 
 export type SignInResult = "ok" | "unknown-code" | "too-many" | "not-enabled" | "offline";
 
+// Errors from redeem_access_code that mean the saved device session is no
+// longer valid: rejected token, or its auth user no longer exists.
+const STALE_SESSION = new Set(["PGRST301", "PGRST302", "PGRST303", "28000", "23503"]);
+
+type Anonymous = "ok" | "not-enabled" | "offline";
+
+async function signInAnonymously(): Promise<Anonymous> {
+  const { error } = await supabase().auth.signInAnonymously();
+  if (!error) return "ok";
+  // The project must allow anonymous sign-ins (Authentication › Sign In / Providers).
+  return error.code === "anonymous_provider_disabled" ? "not-enabled" : "offline";
+}
+
 /** Signs this device in with a school-issued access code. */
 export async function signIn(code: string): Promise<SignInResult> {
   try {
     const auth = supabase().auth;
     const { data } = await auth.getSession();
     // Only create an anonymous user when someone actually submits a code.
-    if (!data.session) {
-      const { error } = await auth.signInAnonymously();
-      // The project must allow anonymous sign-ins (Authentication › Sign In / Providers).
-      if (error) return error.code === "anonymous_provider_disabled" ? "not-enabled" : "offline";
+    const fresh = !data.session;
+    if (fresh) {
+      const anon = await signInAnonymously();
+      if (anon !== "ok") return anon;
     }
-    const { data: rows, error } = await supabase().rpc("redeem_access_code", { code });
+    let { data: rows, error } = await supabase().rpc("redeem_access_code", { code });
+    if (error && !fresh && STALE_SESSION.has(error.code)) {
+      // The saved device session may be stale (its auth user was removed after
+      // a long time unused). Start over with a new anonymous user, once.
+      await auth.signOut({ scope: "local" });
+      const anon = await signInAnonymously();
+      if (anon !== "ok") return anon;
+      ({ data: rows, error } = await supabase().rpc("redeem_access_code", { code }));
+    }
     if (error) return error.message.includes("too_many_attempts") ? "too-many" : "offline";
     if (!rows?.length) return "unknown-code";
     await refresh();
