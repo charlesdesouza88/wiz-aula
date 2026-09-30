@@ -50,6 +50,8 @@ iPadOS reports itself as a Mac in the browser, so detect an iPad by touch suppor
 - **Aula relâmpago:** start now; ends any earlier live lightning class for that turma and alerts every student.
 - **Agendar aula:** date, time, duration, optional topic, optional weekly repeat (4 weeks).
 - Live class actions: **Avisar de novo** (re-send the alert) and **Encerrar** (turn the students' button off).
+- Scheduled classes can be **edited** (day, time, duration, subject, Meet link; moving a class re-arms its T-10 reminder) or **deleted** (two taps) until they open.
+- Turmas can be created, **edited** and **deleted** by their teacher (deleting removes its classes and enrolments; the students stay in the school).
 - Each turma keeps a fixed Meet link.
 
 **Admin / school (phase 2)**
@@ -76,20 +78,47 @@ Lightning classes skip the cron: the API sends the alert the moment the teacher 
 | --- | --- | --- |
 | `schools` | id, name, city | One per franchise unit |
 | `turmas` | id, school_id, name, nivel, horario, teacher_id, meet_link | Fixed Meet link per turma |
-| `people` | id, school_id, role (student, teacher, admin), name, access_code_hash | No email or password for students |
+| `people` | id, school_id, role (student, teacher, admin), name | No email or password for students |
+| `access_codes` | person_id, code_hash | HMAC-SHA256 of the normalised code with a server secret; no client access |
+| `person_logins` | auth_user_id, person_id | Links a Supabase Auth user (one per signed-in device) to a person; written by the server after it checks the code |
 | `enrollments` | person_id, turma_id | A student can sit in more than one turma |
-| `aulas` | id, turma_id, type (scheduled, lightning), start_at, duration_min, meet_link, status, ping_at | Same shape as the prototype |
+| `aulas` | id, turma_id, type (scheduled, lightning), start_at, duration_min, meet_link, status (scheduled, live, ended), ping_at, reminder_sent_at, created_by | Same shape as the prototype; at most one live lightning class per turma |
 | `push_subscriptions` | person_id, endpoint, keys, platform, last_ok_at | One row per device; drop on 404/410 |
 | `join_events` | aula_id, person_id, joined_at | Attendance |
 
-Row-level security keeps each school's data separate: a student reads only their own turmas and aulas; only teachers of a turma write its aulas.
+Row-level security keeps each school's data separate: a student reads only their own turmas and aulas; only teachers of a turma (or a school admin) write its aulas. Rosters, access codes and logins are written only by server code with the service role.
+
+Schema details, as built in `supabase/migrations/`:
+
+- Meet links are checked in the database as well as in the app (`https://meet.google.com/xxx-yyyy-zzz` only).
+- A scheduled class is `scheduled` or `ended`; whether it is joinable comes from the clock (T-10 until its end). A lightning class is created `live`, and a trigger ends the turma's previous live lightning class in the same transaction.
+- The signed-in person is found through `person_logins` from `auth.uid()`, so the access-code login (milestone 3) only has to create a Supabase Auth session for the device and link it.
+- `npm run test:db` applies the migrations and seed to a throwaway Postgres and runs the RLS tests in `db/tests/rls.sql` (no Docker needed).
+- A scheduled class opening (T-10) also ends a live lightning class of the same turma, so students only ever see one button. The app applies this rule when it shows classes (`resolveOverlaps` in `src/lib/aulas.ts`).
+
+### Sign-in (decided 2026-09-29)
+
+Each device signs in with Supabase **anonymous sign-in** (no email or phone stored), and only when someone submits a code. The browser then calls the database function `redeem_access_code(code)`, which normalises and hashes the code with a per-database pepper (`private.settings`), links the device's auth user to the person in `person_logins`, and blocks a device after 5 wrong codes (20 per IP) in 10 minutes. "Sair" deletes that link. The app has no server secrets: the browser uses the publishable key and RLS does the rest. Live updates come from Supabase Realtime on `aulas` and `turmas`, with a one-minute poll and a reload when the app returns to the foreground as fallbacks.
+
+The development project is `wiz-aula` (Supabase, region sa-east-1). The app is deployed on Vercel as project `wiz-aula` at https://wiz-aula.vercel.app (production builds from `main`, previews from other branches; Vercel's login wall is off so phones can open previews).
+
+### Push alerts and install (built 2026-09-29)
+
+- **Install:** web app manifest and icons (`src/app/manifest.ts`, `public/icons/`, `src/app/apple-icon.png`). Chrome and Edge get a one-tap **Instalar** card (`beforeinstallprompt`); an iPhone or iPad in a Safari tab gets a card explaining Compartilhar › Adicionar à Tela de Início instead of the alerts button.
+- **Subscribe:** the student taps **Ativar avisos**; the permission prompt opens straight from that tap, the service worker (`public/sw.js`) subscribes with the VAPID public key (read from the database with `vapid_public_key()`), and the subscription is saved in `push_subscriptions` under RLS. Sair deletes this device's subscription.
+- **Send:** everything runs inside Supabase, so the Next.js app still has no secrets.
+  - A trigger on `aulas` calls the Edge Function `send-push` through `pg_net` when a lightning class starts or the teacher taps Avisar de novo.
+  - A `pg_cron` job runs `private.send_due_reminders()` every minute and asks for a reminder once per scheduled class when it is 10 minutes or less from starting.
+  - `send-push` checks a shared secret, loads the class and the enrolled students' subscriptions with the service role, sends with the `web-push` package and deletes subscriptions that answer 404/410.
+- **Tap:** the notification opens the Meet link directly (the Meet app on phones). A re-sent alert replaces the previous one (same tag).
+- **Per-project setup** (done for `wiz-aula`): apply the migrations, deploy `supabase/functions/send-push` with JWT verification off (it checks its own secret), and set `vapid_public_key`, `vapid_private_key` (`npx web-push generate-vapid-keys`) and `functions_url` (`https://<ref>.supabase.co/functions/v1`) in `private.settings`. Until those are set, no alert is sent and the app hides the alerts card.
 
 ## Roadmap
 
 | Phase | Duration (proposed) | Content | Gate to next phase |
 | --- | --- | --- | --- |
 | Prototype | done 2026-09-28 | Clickable demo with shared class data (`prototype/wiz-aula.html`) | Teacher OK on the demo |
-| MVP | about 3 weeks | PWA (manifest, service worker, install screens), access-code login, Supabase schema + RLS, VAPID Web Push, T-10 reminder cron, in-app setup guide | One pilot turma installed |
+| MVP | about 3 weeks; milestones 1–3 (scaffold, database, code login with live data) and 5 (installable PWA, push alerts, T-10 reminders) done by 2026-09-29 | PWA (manifest, service worker, install screens), access-code login, Supabase schema + RLS, VAPID Web Push, T-10 reminder cron, in-app setup guide | One pilot turma installed |
 | Pilot | about 4 weeks | 3 turmas (adult, teens, kids) | ≥90% installed with alerts on; median alert-to-Meet < 20 s; < 5% alerts missed |
 | Rollout | after pilot | Roster import, access-code cards, attendance, optional Play Store via TWA | — |
 
@@ -106,7 +135,7 @@ Row-level security keeps each school's data separate: a student reads only their
 
 ## Open decisions
 
-- [ ] Standalone product or a module inside the existing Mister Wiz app (misterwiz.fun, FastAPI + Flutter)? This plan assumes a standalone Next.js PWA on the Speak Easy stack.
+- [x] Standalone product or a module inside the existing Mister Wiz app? **Decided 2026-09-28: standalone Next.js PWA** on the Speak Easy stack.
 - [ ] Domain (for example a subdomain of misterwiz.fun).
 - [ ] Which three turmas run the pilot.
 - [ ] Whether Speak Easy reuses the same codebase for its live and lightning classes.

@@ -1,0 +1,201 @@
+@import "tailwindcss";
+
+/* Mister Wiz brand tokens. Light by default, dark via the system setting
+   or an explicit data-theme on <html>. */
+:root {
+  --bg: #f6f1f7;
+  --surface: #ffffff;
+  --surface-2: #f0e6f3;
+  --ink: #2d1040;
+  --muted: #66566f;
+  --line: #e3d5e8;
+  --primary: #792d83;
+  --primary-hover: #5a1a64;
+  --on-primary: #ffffff;
+  --gold: #ebb22e;
+  --gold-soft: #fbefcf;
+  --on-gold: #2d1040;
+  --live: #d23b3b;
+  --ok: #2c7a3f;
+  --err-bg: #fce8e8;
+  --err-ink: #9b1c1c;
+  --shadow: 0 1px 2px rgb(45 16 64 / 0.06), 0 6px 20px rgb(45 16 64 / 0.08);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --bg: #170a20;
+    --surface: #241030;
+    --surface-2: #30183d;
+    --ink: #f4ecf7;
+    --muted: #bba8c4;
+    --line: #3e2649;
+    --primary: #c47fcf;
+    --primary-hover: #d89be1;
+    --on-primary: #1b0a24;
+    --gold: #f0be45;
+    --gold-soft: #3a2a12;
+    --on-gold: #1b0a24;
+    --live: #ff6b6b;
+    --ok: #6fcf8e;
+    --err-bg: #3b1618;
+    --err-ink: #ffb4b4;
+    --shadow: 0 1px 2px rgb(0 0 0 / 0.3), 0 6px 20px rgb(0 0 0 / 0.35);
+  }
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #170a20;
+  --surface: #241030;
+  --surface-2: #30183d;
+  --ink: #f4ecf7;
+  --muted: #bba8c4;
+  --line: #3e2649;
+  --primary: #c47fcf;
+  --primary-hover: #d89be1;
+  --on-primary: #1b0a24;
+  --gold: #f0be45;
+  --gold-soft: #3a2a12;
+  --on-gold: #1b0a24;
+  --live: #ff6b6b;
+  --ok: #6fcf8e;
+  --err-bg: #3b1618;
+  --err-ink: #ffb4b4;
+  --shadow: 0 1px 2px rgb(0 0 0 / 0.3), 0 6px 20px rgb(0 0 0 / 0.35);
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-on-primary: var(--on-primary);
+  --color-gold: var(--gold);
+  --color-gold-soft: var(--gold-soft);
+  --color-on-gold: var(--on-gold);
+  --color-live: var(--live);
+  --color-ok: var(--ok);
+  --color-err-bg: var(--err-bg);
+  --color-err-ink: var(--err-ink);
+  --shadow-card: var(--shadow);
+  --font-display: var(--font-baloo), "Trebuchet MS", system-ui, sans-serif;
+  --font-body: var(--font-atkinson), system-ui, -apple-system, "Segoe UI", sans-serif;
+  --breakpoint-tablet: 640px;
+  --breakpoint-desktop: 960px;
+}
+
+/* Text-size control: 100 / 112.5 / 125 %. Every size below is in rem. */
+html {
+  font-size: 100%;
+}
+html.wa-size-1 {
+  font-size: 112.5%;
+}
+html.wa-size-2 {
+  font-size: 125%;
+}
+
+@layer base {
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font-body);
+    font-size: 1.125rem; /* 18px base */
+    line-height: 1.5;
+  }
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+    line-height: 1.15;
+    text-wrap: balance;
+  }
+  :focus-visible {
+    outline: 3px solid var(--gold);
+    outline-offset: 2px;
+    border-radius: 10px;
+  }
+}
+
+@layer components {
+  .card {
+    @apply flex flex-col gap-3.5 rounded-[20px] border border-line bg-surface p-5;
+  }
+  .eyebrow {
+    @apply text-[0.8rem] font-bold tracking-[0.08em] text-muted uppercase;
+  }
+  .field {
+    @apply flex flex-col gap-1.5;
+  }
+  .field > label {
+    @apply text-base font-bold;
+  }
+  .input {
+    @apply min-h-14 w-full rounded-[14px] border-2 border-line bg-surface px-3.5 py-2.5 focus:border-primary focus:outline-none;
+  }
+  .btn {
+    @apply min-h-14 cursor-pointer rounded-2xl bg-primary px-4.5 py-3 text-[1.1rem] font-bold text-on-primary hover:bg-primary-hover;
+  }
+  .btn-gold {
+    @apply bg-gold text-on-gold hover:bg-gold hover:brightness-105;
+  }
+  .btn-ghost {
+    @apply min-h-14 cursor-pointer rounded-2xl border-2 border-line bg-transparent px-3 py-2 text-[0.95rem] font-bold text-primary hover:border-primary;
+  }
+  .pill {
+    @apply rounded-full px-2.5 py-1 text-[0.8rem] font-bold whitespace-nowrap;
+  }
+  /* Inline so long labels can wrap on narrow phones; clone keeps the padding on each line. */
+  .kbd {
+    @apply rounded-lg bg-surface-2 px-2 font-bold [box-decoration-break:clone] [-webkit-box-decoration-break:clone];
+  }
+  .kbd > svg {
+    @apply mr-1 inline-block align-[-0.125em];
+  }
+  .msg-err {
+    @apply rounded-xl bg-err-bg px-3.5 py-2.5 text-base text-err-ink;
+  }
+  .msg-ok {
+    @apply text-base font-bold text-ok;
+  }
+}
+
+@keyframes live-pulse {
+  0% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--live) 60%, transparent);
+  }
+  100% {
+    box-shadow: 0 0 0 12px transparent;
+  }
+}
+
+.live-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--live);
+  animation: live-pulse 1.6s infinite;
+}
+
+.join {
+  box-shadow: 0 4px 0 color-mix(in srgb, var(--gold) 55%, #000);
+}
+.join:active {
+  transform: translateY(2px);
+  box-shadow: 0 2px 0 color-mix(in srgb, var(--gold) 55%, #000);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .live-dot {
+    animation: none;
+  }
+  .join:active {
+    transform: none;
+  }
+}
