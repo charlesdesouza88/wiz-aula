@@ -273,8 +273,13 @@ export type Database = {
         Args: { name: string; role: Database["public"]["Enums"]["person_role"]; turma?: string };
         Returns: { code: string; person_id: string }[];
       };
+      admin_add_students: {
+        Args: { names: string[]; turma?: string };
+        Returns: { code: string; name: string; person_id: string }[];
+      };
       admin_new_code: { Args: { person: string }; Returns: string };
       admin_remove_person: { Args: { person: string }; Returns: undefined };
+      admin_update_person: { Args: { person: string; name: string; turma_ids?: string[] }; Returns: undefined };
       admin_roster: {
         Args: never;
         Returns: {

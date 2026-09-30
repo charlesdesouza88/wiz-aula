@@ -527,4 +527,55 @@ select test.ok(not exists (select 1 from public.access_codes where person_id = :
                and not exists (select 1 from public.enrollments where person_id = :'maria'),
                'her code, devices and enrolment go with her');
 
+-- ---------------------------------------------------------------------------
+-- Admin: editing people and adding a list of students
+-- ---------------------------------------------------------------------------
+
+set role authenticated;
+set request.jwt.claims = '{"sub": "10000000-0000-4000-8000-000000000101", "role": "authenticated"}';
+select test.fails(format($$select public.admin_update_person(%L, 'X')$$, :ana), '42501', 'a teacher cannot rename people');
+select test.fails($$select * from public.admin_add_students(array['X'])$$, '42501', 'a teacher cannot add students');
+
+set request.jwt.claims = :'admin_device';
+select person_id as caio from public.admin_add_person('Caio', 'student', :masters) \gset
+select public.admin_update_person(:'caio', '  Caio   Lima ', array[]::uuid[]);
+select test.ok((select name from public.people where id = :'caio') = 'Caio Lima', 'an admin fixes a name');
+select test.ok(not exists (select 1 from public.enrollments where person_id = :'caio'), 'and can take a student out of every turma');
+select public.admin_update_person(:'caio', 'Caio Lima', array[:masters, :masters]::uuid[]);
+select test.ok((select array_agg(turma_id) from public.enrollments where person_id = :'caio') = array[:masters]::uuid[],
+               'and put the student back in a turma');
+select public.admin_update_person(:'caio', 'Caio L.');
+select test.ok((select count(*) from public.enrollments where person_id = :'caio') = 1
+               and (select name from public.people where id = :'caio') = 'Caio L.',
+               'renaming alone leaves the turmas as they are');
+select test.fails(format($$select public.admin_update_person(%L, 'Caio', array[%L]::uuid[])$$, :'caio', :outra_turma), '22023',
+                  'no turma of another school');
+select test.fails(format($$select public.admin_update_person(%L, '  ')$$, :'caio'), '22023', 'a name is still required');
+select test.fails(format($$select public.admin_update_person(%L, 'X')$$, '00000000-0000-4000-8000-00000000b201'), '42501',
+                  'an admin cannot edit another school''s people');
+select test.fails(format($$select public.admin_update_person(%L, 'Chuck', array[%L]::uuid[])$$, :chuck, :masters), '22023',
+                  'teachers are not enrolled as students');
+select public.admin_remove_person(:'caio');
+
+create temporary table batch as
+  select * from public.admin_add_students(array['Davi', '  ', 'Eva  Souza', 'Davi'], :masters);
+select test.ok((select string_agg(name, ', ' order by name) from batch) = 'Davi, Davi, Eva Souza',
+               'a list of names adds one student per line, skipping blank lines');
+select test.ok((select count(distinct code) from batch) = 3
+               and (select bool_and(code ~ '^WIZ-[A-HJKMNP-Z2-9]{4}-[A-HJKMNP-Z2-9]{4}$') from batch),
+               'each new student gets their own code');
+select test.ok((select count(*) from public.enrollments where person_id in (select person_id from batch) and turma_id = :masters) = 3,
+               'all of them in the chosen turma');
+select test.fails(format($$select * from public.admin_add_students(array['Fábio'], %L)$$, :outra_turma), '22023',
+                  'no list into another school''s turma');
+select test.fails($$select * from public.admin_add_students(array['  ', ''])$$, '22023', 'an empty list adds nobody');
+select test.fails($$select * from public.admin_add_students(array_fill('Nome'::text, array[201]))$$, '22023',
+                  'at most 200 names at a time');
+select test.fails(format($$select * from public.admin_add_students(array['Gil', repeat('x', 81)], %L)$$, :masters), '22023',
+                  'one bad name stops the whole list');
+select test.ok(not exists (select 1 from public.people where name = 'Gil'), 'and nobody from that list is added');
+select public.admin_remove_person(person_id) from batch;
+reset role;
+select test.ok(not exists (select 1 from public.people where name in ('Davi', 'Eva Souza')), 'the admin removes them again');
+
 \echo 'All database tests passed.'
