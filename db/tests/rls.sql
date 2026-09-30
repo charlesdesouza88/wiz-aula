@@ -204,7 +204,7 @@ reset role;
 
 set role authenticated;
 set request.jwt.claims = '{"sub": "10000000-0000-4000-8000-000000000101", "role": "authenticated"}';
-select test.ok(test.count_rows('select * from public.people') = 4, 'teacher sees everyone in his school only');
+select test.ok(test.count_rows('select * from public.people') = 5, 'teacher sees everyone in his school only');
 select test.ok(test.count_rows('select * from public.turmas') = 1, 'teacher sees his school''s turmas only');
 select test.ok(test.count_rows('select * from public.join_events') = 1, 'teacher sees joins in his turma');
 select test.ok(test.rows_changed(format($$insert into public.aulas (turma_id, type, start_at, meet_link, status, ping_at, created_by)
@@ -319,7 +319,7 @@ select test.fails($$select * from public.redeem_access_code('WIZ-ALUNO-01')$$, '
 -- Another device is not blocked, and the teacher code gives teacher access.
 set request.jwt.claims = '{"sub": "20000000-0000-4000-8000-000000000003", "role": "authenticated"}';
 select test.ok((select role from public.redeem_access_code('WIZ-PROF-01')) = 'teacher', 'the teacher code signs Chuck in');
-select test.ok(test.count_rows('select * from public.people') = 4, 'Chuck''s new device sees his school');
+select test.ok(test.count_rows('select * from public.people') = 5, 'Chuck''s new device sees his school');
 reset role;
 
 -- ---------------------------------------------------------------------------
@@ -442,5 +442,89 @@ select test.ok(exists (select 1 from auth.users where id = '30000000-0000-4000-8
                'non-anonymous users are never removed');
 select test.ok(not exists (select 1 from private.login_attempts where attempted_at < now() - interval '1 day'),
                'old login attempts are removed');
+
+-- ---------------------------------------------------------------------------
+-- Admin: people and access codes
+-- ---------------------------------------------------------------------------
+
+\set admin_device '{"sub": "10000000-0000-4000-8000-00000000a001", "role": "authenticated"}'
+set role authenticated;
+set request.jwt.claims = '{"sub": "10000000-0000-4000-8000-000000000201", "role": "authenticated"}';
+select test.fails('select * from public.admin_roster()', '42501', 'a student cannot list the roster');
+select test.fails($$select * from public.admin_add_person('X', 'student')$$, '42501', 'a student cannot add people');
+set request.jwt.claims = '{"sub": "10000000-0000-4000-8000-000000000101", "role": "authenticated"}';
+select test.fails('select * from public.admin_roster()', '42501', 'a teacher cannot list the roster');
+select test.fails(format('select public.admin_new_code(%L)', :ana), '42501', 'a teacher cannot give out codes');
+select test.fails(format('select public.admin_remove_person(%L)', :ana), '42501', 'a teacher cannot remove people');
+select test.fails('select private.new_access_code()', '42501', 'clients cannot draw codes directly');
+
+set request.jwt.claims = :'admin_device';
+select test.ok((select count(*) from public.admin_roster()) = (select count(*) from public.people)
+               and (select count(*) from public.people) = 5,
+               'the roster lists everyone in the admin''s school and nobody else');
+select test.ok((select turma_ids = array['00000000-0000-4000-8000-000000000301']::uuid[] and code_created_at is not null
+                       and devices >= 1 and alerts >= 1
+                  from public.admin_roster() where person_id = :ana),
+               'the roster shows turma, code, devices and alerts');
+
+select person_id as maria, code as maria_code from public.admin_add_person('  Maria   Souza ', 'student', :masters) \gset
+select test.ok(:'maria_code' ~ '^WIZ-[A-HJKMNP-Z2-9]{4}-[A-HJKMNP-Z2-9]{4}$',
+               'a new code looks like WIZ-XXXX-XXXX, with no look-alike symbols');
+select test.ok((select name from public.people where id = :'maria') = 'Maria Souza', 'the name is tidied up');
+select test.ok(exists (select 1 from public.enrollments where person_id = :'maria' and turma_id = :masters),
+               'the new student is in the chosen turma');
+select test.fails(format($$select * from public.admin_add_person('Y', 'student', %L)$$, :outra_turma), '22023',
+                  'an admin cannot enrol anyone in another school''s turma');
+select test.fails($$select * from public.admin_add_person('Y', 'admin')$$, '22023', 'admins are not created from the app');
+select test.fails($$select * from public.admin_add_person('   ', 'student')$$, '22023', 'a name is required');
+select test.fails(format($$select * from public.admin_add_person('Y', 'teacher', %L)$$, :masters), '22023',
+                  'teachers are not enrolled as students');
+select person_id as lia from public.admin_add_person('Profa. Lia', 'teacher') \gset
+select test.ok((select role from public.people where id = :'lia') = 'teacher', 'an admin adds a teacher');
+
+-- Maria signs in on her phone and turns alerts on.
+reset role;
+insert into auth.users (id) values ('40000000-0000-4000-8000-000000000001'), ('40000000-0000-4000-8000-000000000002');
+set role authenticated;
+set request.jwt.claims = '{"sub": "40000000-0000-4000-8000-000000000001", "role": "authenticated"}';
+select test.ok((select name from public.redeem_access_code(lower(:'maria_code'))) = 'Maria Souza', 'the new code signs the student in');
+select test.ok(test.rows_changed(format($$insert into public.push_subscriptions (person_id, endpoint, p256dh, auth)
+  select %L, 'https://fcm.googleapis.com/fcm/send/maria-' || i, 'BNcRdreALRFXTkOOUHK1EtK2wtaz5Ry4YfYCA_0QTpQtUbVlUls0VJXg7A8u-Ts1XbjhazAkj7I99e8QcYP7DkM', 'tBHItJI5svbpez7KI4CCXg' from generate_series(1, 10) i$$, :'maria')) = 10,
+  'she registers ten devices for alerts');
+select test.ok(test.rows_changed(format($$insert into public.push_subscriptions (person_id, endpoint, p256dh, auth)
+  values (%L, 'https://fcm.googleapis.com/fcm/send/maria-1', 'BNcRdreALRFXTkOOUHK1EtK2wtaz5Ry4YfYCA_0QTpQtUbVlUls0VJXg7A8u-Ts1XbjhazAkj7I99e8QcYP7DkM', 'tBHItJI5svbpez7KI4CCXg')
+  on conflict (endpoint) do update set last_ok_at = null$$, :'maria')) = 1,
+  'at the device limit, a known device can still re-register (as on every sign-in)');
+
+-- The admin gives her a new code: the old one and every device stop working.
+set request.jwt.claims = :'admin_device';
+select test.ok((select devices = 1 and alerts = 10 from public.admin_roster() where person_id = :'maria'),
+               'the roster counts her devices and alerts');
+select public.admin_new_code(:'maria') as maria_code2 \gset
+select test.ok(:'maria_code2' <> :'maria_code', 'the new code is different');
+reset role;
+select test.ok(not exists (select 1 from public.person_logins where person_id = :'maria'), 'a new code signs the person out everywhere');
+select test.ok(not exists (select 1 from public.push_subscriptions where person_id = :'maria'), 'and stops alerts to her old devices');
+set role authenticated;
+set request.jwt.claims = '{"sub": "40000000-0000-4000-8000-000000000002", "role": "authenticated"}';
+select test.ok(test.count_rows(format('select * from public.redeem_access_code(%L)', :'maria_code')) = 0, 'the old code no longer works');
+select test.ok((select name from public.redeem_access_code(:'maria_code2')) = 'Maria Souza', 'the new code works');
+
+-- Limits, then removal.
+set request.jwt.claims = :'admin_device';
+select test.fails(format('select public.admin_new_code(%L)', '00000000-0000-4000-8000-00000000b201'), '42501',
+                  'an admin cannot touch another school''s people');
+select test.fails(format('select public.admin_new_code(%L)', '00000000-0000-4000-8000-00000000a001'), '42501',
+                  'an admin cannot reset their own code from the app');
+select test.fails(format('select public.admin_remove_person(%L)', '00000000-0000-4000-8000-000000000901'), '42501',
+                  'an admin cannot remove another admin');
+select public.admin_remove_person(:'maria');
+select public.admin_remove_person(:'lia');
+reset role;
+select test.ok(not exists (select 1 from public.people where id in (:'maria', :'lia')), 'an admin removes a student and a teacher');
+select test.ok(not exists (select 1 from public.access_codes where person_id = :'maria')
+               and not exists (select 1 from public.person_logins where person_id = :'maria')
+               and not exists (select 1 from public.enrollments where person_id = :'maria'),
+               'her code, devices and enrolment go with her');
 
 \echo 'All database tests passed.'

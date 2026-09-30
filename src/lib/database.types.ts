@@ -269,6 +269,24 @@ export type Database = {
     };
     Views: { [_ in never]: never };
     Functions: {
+      admin_add_person: {
+        Args: { name: string; role: Database["public"]["Enums"]["person_role"]; turma?: string };
+        Returns: { code: string; person_id: string }[];
+      };
+      admin_new_code: { Args: { person: string }; Returns: string };
+      admin_remove_person: { Args: { person: string }; Returns: undefined };
+      admin_roster: {
+        Args: never;
+        Returns: {
+          alerts: number;
+          code_created_at: string | null;
+          devices: number;
+          name: string;
+          person_id: string;
+          role: Database["public"]["Enums"]["person_role"];
+          turma_ids: string[];
+        }[];
+      };
       push_config: {
         Args: never;
         Returns: { push_secret: string; vapid_private_key: string; vapid_public_key: string; vapid_subject: string }[];
