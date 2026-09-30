@@ -208,3 +208,26 @@ html.wa-size-2 {
     transform: none;
   }
 }
+
+/* Printing a new access code: only its card, in black on white. */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  .print-card,
+  .print-card * {
+    visibility: visible;
+    color: #000 !important;
+  }
+  .print-card {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    background: #fff !important;
+    border: 2px solid #000 !important;
+  }
+  .no-print {
+    display: none !important;
+  }
+}

@@ -2,19 +2,24 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useSession } from "@/lib/session";
 
 // The access code decides whether "/" is the student or the teacher screen.
 const ITEMS = [
   { href: "/", label: "Minhas aulas" },
   { href: "/como-instalar", label: "Como instalar" },
 ];
+// School admins also manage people and access codes.
+const ADMIN_ITEMS = [ITEMS[0], { href: "/alunos", label: "Alunos" }, ITEMS[1]];
 
 export function MainNav() {
   const pathname = usePathname();
+  const session = useSession();
+  const items = session.status === "signed-in" && session.person.role === "admin" ? ADMIN_ITEMS : ITEMS;
   return (
     <nav aria-label="Menu" className="desktop:max-w-[36rem]">
-      <ul className="grid grid-cols-2 gap-1.5 rounded-2xl bg-surface-2 p-1.5">
-        {ITEMS.map((item) => {
+      <ul className={`grid gap-1.5 rounded-2xl bg-surface-2 p-1.5 ${items.length === 3 ? "grid-cols-3" : "grid-cols-2"}`}>
+        {items.map((item) => {
           const current = pathname === item.href;
           return (
             <li key={item.href}>

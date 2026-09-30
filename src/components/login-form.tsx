@@ -40,7 +40,7 @@ export function LoginForm() {
           autoCapitalize="characters"
           autoCorrect="off"
           spellCheck={false}
-          placeholder="WIZ-ALUNO-01"
+          placeholder="WIZ-7KQ9-M3XP"
           value={code}
           onChange={(e) => setCode(e.target.value)}
         />

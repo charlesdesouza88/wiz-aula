@@ -54,10 +54,11 @@ iPadOS reports itself as a Mac in the browser, so detect an iPad by touch suppor
 - Turmas can be created, **edited** and **deleted** by their teacher (deleting removes its classes and enrolments; the students stay in the school).
 - Each turma keeps a fixed Meet link.
 
-**Admin / school (phase 2)**
+**Admin / school**
 
-- Import turmas and students from the roster spreadsheet (teacher, turma, nível, horário, student name — same columns as the student feedback template).
-- Generate and print access codes; see who installed and who has alerts on.
+- **Alunos** page (`/alunos`, admins only): add a student (to a turma) or a teacher and get their first access code; **Novo código** for a lost code (the old one stops working and every device is signed out, alerts included); **Remover**. Codes are random `WIZ-XXXX-XXXX` (31 unambiguous symbols, about 40 bits), shown once with **Imprimir** and **Enviar**/**Copiar mensagem**; only the hash is stored. The list shows who has signed in on how many devices and who has alerts on.
+- Admins themselves are added in the Supabase dashboard, and the app cannot reset or remove them, so nobody can lock the school out.
+- Phase 2: import turmas and students from the roster spreadsheet (teacher, turma, nível, horário, student name — same columns as the student feedback template); edit names and move students between turmas.
 - Attendance from join taps, feeding the feedback report compiler.
 
 ## Architecture
@@ -86,7 +87,7 @@ Lightning classes skip the cron: the API sends the alert the moment the teacher 
 | `push_subscriptions` | person_id, endpoint, keys, platform, last_ok_at | One row per device; drop on 404/410 |
 | `join_events` | aula_id, person_id, joined_at | Attendance |
 
-Row-level security keeps each school's data separate: a student reads only their own turmas and aulas; only teachers of a turma (or a school admin) write its aulas. Rosters and access codes are written only with the service role; device logins only by `redeem_access_code()`.
+Row-level security keeps each school's data separate: a student reads only their own turmas and aulas; only teachers of a turma (or a school admin) write its aulas. People and access codes are written only by the admin functions (`admin_add_person`, `admin_new_code`, `admin_remove_person`, which check the caller is an admin of that school) or with the service role; device logins only by `redeem_access_code()`.
 
 Security hardening (migration `20260930150000_security_hardening.sql`, from the first audit):
 
