@@ -13,6 +13,7 @@ grant usage on schema auth to anon, authenticated, service_role;
 
 create table auth.users (
   id uuid primary key default gen_random_uuid(),
+  is_anonymous boolean not null default true,
   created_at timestamptz not null default now()
 );
 

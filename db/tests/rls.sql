@@ -169,9 +169,22 @@ select test.ok(test.rows_changed(format('update public.turmas set meet_link = nu
                'student cannot change the turma link');
 select test.fails(format($$update public.people set name = 'X' where id = %L$$, :ana), '42501', 'student cannot rename herself');
 select test.ok(test.rows_changed(format($$insert into public.push_subscriptions (person_id, endpoint, p256dh, auth)
-  values (%L, 'https://push.example/ana', 'k', 'a')$$, :ana)) = 1, 'student saves her own push subscription');
+  values (%L, 'https://web.push.apple.com/ana', 'BNcRdreALRFXTkOOUHK1EtK2wtaz5Ry4YfYCA_0QTpQtUbVlUls0VJXg7A8u-Ts1XbjhazAkj7I99e8QcYP7DkM', 'tBHItJI5svbpez7KI4CCXg')$$, :ana)) = 1, 'student saves her own push subscription');
 select test.fails(format($$insert into public.push_subscriptions (person_id, endpoint, p256dh, auth)
-  values (%L, 'https://push.example/bruno', 'k', 'a')$$, :bruno), '42501', 'student cannot save a subscription for someone else');
+  values (%L, 'https://attacker.example/x', 'BNcRdreALRFXTkOOUHK1EtK2wtaz5Ry4YfYCA_0QTpQtUbVlUls0VJXg7A8u-Ts1XbjhazAkj7I99e8QcYP7DkM', 'tBHItJI5svbpez7KI4CCXg')$$, :ana), '23514', 'only real push services are accepted as endpoints');
+select test.fails(format($$insert into public.push_subscriptions (person_id, endpoint, p256dh, auth)
+  values (%L, 'https://web.push.apple.com.attacker.example/x', 'BNcRdreALRFXTkOOUHK1EtK2wtaz5Ry4YfYCA_0QTpQtUbVlUls0VJXg7A8u-Ts1XbjhazAkj7I99e8QcYP7DkM', 'tBHItJI5svbpez7KI4CCXg')$$, :ana), '23514', 'look-alike push hosts are rejected');
+select test.fails(format($$insert into public.push_subscriptions (person_id, endpoint, p256dh, auth)
+  values (%L, 'https://fcm.googleapis.com/fcm/send/x', 'k', 'a')$$, :ana), '23514', 'malformed push keys are rejected');
+select test.ok(test.rows_changed(format($$insert into public.push_subscriptions (person_id, endpoint, p256dh, auth)
+  select %L, 'https://fcm.googleapis.com/fcm/send/ana-' || i, 'BNcRdreALRFXTkOOUHK1EtK2wtaz5Ry4YfYCA_0QTpQtUbVlUls0VJXg7A8u-Ts1XbjhazAkj7I99e8QcYP7DkM', 'tBHItJI5svbpez7KI4CCXg' from generate_series(2, 10) i$$, :ana)) = 9,
+  'a student may have up to 10 devices');
+select test.fails(format($$insert into public.push_subscriptions (person_id, endpoint, p256dh, auth)
+  values (%L, 'https://fcm.googleapis.com/fcm/send/ana-11', 'BNcRdreALRFXTkOOUHK1EtK2wtaz5Ry4YfYCA_0QTpQtUbVlUls0VJXg7A8u-Ts1XbjhazAkj7I99e8QcYP7DkM', 'tBHItJI5svbpez7KI4CCXg')$$, :ana), 'P0001', 'an 11th device is refused');
+select test.ok(test.rows_changed('delete from public.push_subscriptions where endpoint like ''https://fcm.googleapis.com/%''') = 9,
+  'a student removes her own devices');
+select test.fails(format($$insert into public.push_subscriptions (person_id, endpoint, p256dh, auth)
+  values (%L, 'https://web.push.apple.com/bruno', 'BNcRdreALRFXTkOOUHK1EtK2wtaz5Ry4YfYCA_0QTpQtUbVlUls0VJXg7A8u-Ts1XbjhazAkj7I99e8QcYP7DkM', 'tBHItJI5svbpez7KI4CCXg')$$, :bruno), '42501', 'student cannot save a subscription for someone else');
 select test.ok(test.rows_changed(format($$insert into public.join_events (aula_id, person_id)
   select id, %L from public.aulas where turma_id = %L$$, :ana, :masters)) = 1, 'student records her own join');
 select test.fails(format($$insert into public.join_events (aula_id, person_id) values (%L, %L)$$, :outra_aula, :ana),
@@ -206,6 +219,15 @@ select test.ok((select meet_link from public.aulas where turma_id = :masters and
                = 'https://meet.google.com/xyz-abcd-efg', 'the newest lightning class is the live one');
 select test.ok(test.rows_changed(format('update public.aulas set ping_at = now() where turma_id = %L and status = ''live''', :masters)) = 1,
                'teacher re-sends the alert');
+select test.ok(test.rows_changed(format($$insert into public.aulas (id, turma_id, type, start_at, meet_link, status, created_by)
+  values ('00000000-0000-4000-8000-00000000c0b1', %L, 'scheduled', now() + interval '3 days', 'https://meet.google.com/abc-defg-hij', 'scheduled', %L)$$,
+  :masters, :ana)) = 1, 'teacher schedules a class');
+select test.ok((select created_by from public.aulas where id = '00000000-0000-4000-8000-00000000c0b1') = :chuck,
+               'created_by is the signed-in teacher, whatever the client sends');
+update public.aulas set created_by = :ana where id = '00000000-0000-4000-8000-00000000c0b1';
+select test.ok((select created_by from public.aulas where id = '00000000-0000-4000-8000-00000000c0b1') = :chuck,
+               'created_by cannot be changed later');
+delete from public.aulas where id = '00000000-0000-4000-8000-00000000c0b1';
 select test.ok(test.rows_changed(format('update public.turmas set meet_link = ''https://meet.google.com/abc-defg-hij'' where id = %L', :masters)) = 1,
                'teacher updates his turma link');
 select test.fails(format($$insert into public.aulas (turma_id, type, start_at, meet_link, status)
@@ -374,5 +396,51 @@ select test.ok((select reminder_sent_at is not null from public.aulas where id =
 update public.aulas set start_at = now() + interval '2 days' where id = '00000000-0000-4000-8000-00000000c001';
 select test.ok((select reminder_sent_at is null from public.aulas where id = '00000000-0000-4000-8000-00000000c001'),
                'moving a class to another time re-arms its reminder');
+
+-- ---------------------------------------------------------------------------
+-- Login rate limit by the real client address
+-- ---------------------------------------------------------------------------
+
+set request.headers = '{"x-forwarded-for": "1.2.3.4, 198.51.100.7"}';
+select test.ok(private.client_ip() = '', 'a client-set X-Forwarded-For is not trusted');
+set request.headers = '{"x-forwarded-for": "1.2.3.4", "cf-connecting-ip": "203.0.113.9"}';
+select test.ok(private.client_ip() = '203.0.113.9', 'the address comes from cf-connecting-ip');
+set request.headers = '{"sb-forwarded-for": "203.0.113.10"}';
+select test.ok(private.client_ip() = '203.0.113.10', 'or from sb-forwarded-for');
+
+insert into private.login_attempts (auth_user_id, ip, ok)
+  select '20000000-0000-4000-8000-000000000001', '203.0.113.9', false from generate_series(1, 20);
+insert into auth.users (id) values ('20000000-0000-4000-8000-000000000004');
+set request.headers = '{"x-forwarded-for": "5.6.7.8", "cf-connecting-ip": "203.0.113.9"}';
+set role authenticated;
+set request.jwt.claims = '{"sub": "20000000-0000-4000-8000-000000000004", "role": "authenticated"}';
+select test.fails($$select * from public.redeem_access_code('WIZ-ALUNO-01')$$, 'P0001',
+                  'after 20 wrong codes from one address, a new device there must wait, whatever X-Forwarded-For says');
+reset role;
+reset request.headers;
+
+-- ---------------------------------------------------------------------------
+-- Daily cleanup
+-- ---------------------------------------------------------------------------
+
+select test.ok((select count(*) from cron.jobs where jobname = 'wiz-aula-cleanup') = 1, 'the cleanup job is scheduled');
+insert into auth.users (id, created_at) values
+  ('30000000-0000-4000-8000-000000000001', now() - interval '8 days'),
+  ('30000000-0000-4000-8000-000000000002', now() - interval '8 days'),
+  ('30000000-0000-4000-8000-000000000003', now() - interval '1 day');
+insert into auth.users (id, is_anonymous, created_at) values ('30000000-0000-4000-8000-000000000004', false, now() - interval '30 days');
+insert into public.person_logins (auth_user_id, person_id) values ('30000000-0000-4000-8000-000000000002', :bruno);
+insert into private.login_attempts (auth_user_id, ok, attempted_at) values ('30000000-0000-4000-8000-000000000001', false, now() - interval '2 days');
+select private.cleanup();
+select test.ok(not exists (select 1 from auth.users where id = '30000000-0000-4000-8000-000000000001'),
+               'an old device linked to nobody is removed');
+select test.ok(exists (select 1 from auth.users where id = '30000000-0000-4000-8000-000000000002'),
+               'an old device still signed in is kept');
+select test.ok(exists (select 1 from auth.users where id = '30000000-0000-4000-8000-000000000003'),
+               'a recent device is kept');
+select test.ok(exists (select 1 from auth.users where id = '30000000-0000-4000-8000-000000000004'),
+               'non-anonymous users are never removed');
+select test.ok(not exists (select 1 from private.login_attempts where attempted_at < now() - interval '1 day'),
+               'old login attempts are removed');
 
 \echo 'All database tests passed.'

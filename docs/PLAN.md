@@ -86,7 +86,16 @@ Lightning classes skip the cron: the API sends the alert the moment the teacher 
 | `push_subscriptions` | person_id, endpoint, keys, platform, last_ok_at | One row per device; drop on 404/410 |
 | `join_events` | aula_id, person_id, joined_at | Attendance |
 
-Row-level security keeps each school's data separate: a student reads only their own turmas and aulas; only teachers of a turma (or a school admin) write its aulas. Rosters, access codes and logins are written only by server code with the service role.
+Row-level security keeps each school's data separate: a student reads only their own turmas and aulas; only teachers of a turma (or a school admin) write its aulas. Rosters and access codes are written only with the service role; device logins only by `redeem_access_code()`.
+
+Security hardening (migration `20260930150000_security_hardening.sql`, from the first audit):
+
+- Login rate limit: 5 wrong codes per device and 20 per IP in 10 minutes. The IP comes from `cf-connecting-ip` (or `sb-forwarded-for`), never from `X-Forwarded-For`, which the client controls.
+- Push subscriptions accept only real push services as endpoints (FCM, Mozilla, Apple, Windows), well-formed keys, and at most 10 devices per person, so `send-push` never posts to an arbitrary host.
+- `aulas.created_by` is set from the session by a trigger and cannot be changed.
+- A daily `pg_cron` job (`wiz-aula-cleanup`) deletes login attempts older than a day and anonymous devices older than 7 days that are not signed in to anyone.
+- The app sends security headers (no framing, `nosniff`, referrer policy, permissions policy, HSTS).
+- Before real students join: replace the dev access codes with random ones (at least 8 characters from a 30+ symbol alphabet) and rotate the dev VAPID keys.
 
 Schema details, as built in `supabase/migrations/`:
 
