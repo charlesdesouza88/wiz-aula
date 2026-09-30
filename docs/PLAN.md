@@ -98,7 +98,7 @@ Schema details, as built in `supabase/migrations/`:
 
 Each device signs in with Supabase **anonymous sign-in** (no email or phone stored), and only when someone submits a code. The browser then calls the database function `redeem_access_code(code)`, which normalises and hashes the code with a per-database pepper (`private.settings`), links the device's auth user to the person in `person_logins`, and blocks a device after 5 wrong codes (20 per IP) in 10 minutes. "Sair" deletes that link. The app has no server secrets: the browser uses the publishable key and RLS does the rest. Live updates come from Supabase Realtime on `aulas` and `turmas`, with a one-minute poll and a reload when the app returns to the foreground as fallbacks.
 
-The development project is `wiz-aula` (Supabase, region sa-east-1).
+The development project is `wiz-aula` (Supabase, region sa-east-1). The app is deployed on Vercel as project `wiz-aula` at https://wiz-aula.vercel.app (production builds from `main`, previews from other branches; Vercel's login wall is off so phones can open previews).
 
 ### Push alerts and install (built 2026-09-29)
 

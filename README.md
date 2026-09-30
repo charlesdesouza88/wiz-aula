@@ -39,4 +39,4 @@ Push alerts need a one-time setup per Supabase project: deploy `supabase/functio
 
 ## Status
 
-Prototype done (2026-09-28). Standalone Next.js PWA chosen. MVP milestones 1 (scaffold), 2 (Supabase schema, RLS and seed) and 3 (access-code login, screens connected to Supabase with live updates) done; milestone 5 (installable PWA, push alerts, T-10 reminders) done too; next is deploying to Vercel and testing on real phones. See the roadmap in `docs/PLAN.md`.
+Prototype done (2026-09-28). Standalone Next.js PWA chosen. MVP milestones 1 (scaffold), 2 (Supabase schema, RLS and seed) and 3 (access-code login, screens connected to Supabase with live updates) done; milestone 5 (installable PWA, push alerts, T-10 reminders) done too; deployed at https://wiz-aula.vercel.app; next is testing push alerts on real phones. See the roadmap in `docs/PLAN.md`.
