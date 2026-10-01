@@ -29,7 +29,7 @@ export function LoginForm() {
 
   return (
     <form className="card desktop:max-w-[36rem]" onSubmit={submit} noValidate>
-      <h1 className="text-[1.75rem] font-extrabold">Entre com seu código</h1>
+      <h1 className="text-[1.75rem] font-bold">Entre com seu código</h1>
       <p className="text-muted">Digite o código de acesso que a escola te deu. Você só faz isso uma vez neste aparelho.</p>
       <div className="field">
         <label htmlFor="accessCode">Código de acesso</label>

@@ -31,20 +31,22 @@ Same as Speak Easy so nothing new has to be learned or paid for:
 - Supabase (Postgres, row-level security, Auth via custom access-code flow)
 - Web Push with VAPID keys (`web-push` package), service worker in `public/sw.js`
 - Cron for T-10 reminders: Supabase `pg_cron`, every minute; alerts are sent by the Edge Function `supabase/functions/send-push` (called through `pg_net`)
-- Fonts: Baloo 2 (display), Atkinson Hyperlegible (body)
+- Font: Carlito (Google Fonts, metric-compatible with Calibri, the class-materials font) at 400 and 700; headings are the same face set bold
 
 ## Brand tokens (Mister Wiz)
+
+The design system lives in `design-system/` (brand book `README.md`, `tokens.json`, component guidelines, logos and icons). Follow it; this table is a summary.
 
 | Token | Light | Dark |
 | --- | --- | --- |
 | primary | `#792D83` | `#C47FCF` |
 | ink (plum) | `#2D1040` | `#F4ECF7` |
-| background | `#F6F1F7` | `#170A20` |
+| background | `#F9F5FA` | `#170A20` |
 | surface-2 (lavender) | `#F0E6F3` | `#30183D` |
 | gold (join button) | `#EBB22E` | `#F0BE45` |
 | live dot | `#D23B3B` | `#FF6B6B` |
 
-No other blues or greens except semantic success text.
+No other blues or greens except semantic success text. Buttons, tabs and labels are capsules; cards have 16px corners. Every screen opens with the MISTER WIZ wordmark; the Mister Wiz symbol is the app icon.
 
 ## Data model (summary)
 

@@ -35,7 +35,7 @@ export function LightningForm({ person, turma }: { person: Person; turma: Turma 
     <form className="card" onSubmit={submit} onChange={() => setMessage(null)} noValidate>
       <div className="flex items-center gap-2.5">
         <BoltIcon className="size-7 flex-none" />
-        <h2 className="text-[1.5rem] font-extrabold">Aula relâmpago</h2>
+        <h2 className="text-[1.5rem] font-bold">Aula relâmpago</h2>
       </div>
       <p className="text-[0.95rem] text-muted">
         Começa agora. Todos os alunos da turma recebem um aviso e entram com um toque.

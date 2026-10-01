@@ -38,7 +38,7 @@ export function LiveAlert({ turma, live, sound }: { turma: Turma; live: Aula | n
           target="_blank"
           rel="noopener"
           onClick={() => setSeenKey(key)}
-          className="fixed top-[calc(12px+env(safe-area-inset-top,0px))] left-1/2 z-10 flex w-[min(30rem,calc(100%-24px))] -translate-x-1/2 items-center gap-3 rounded-[18px] border border-line bg-surface px-4 py-3.5 text-ink no-underline shadow-[0_10px_40px_rgb(0_0_0/0.25)] desktop:top-24 desktop:right-6 desktop:left-auto desktop:w-96 desktop:translate-x-0"
+          className="fixed top-[calc(12px+env(safe-area-inset-top,0px))] left-1/2 z-10 flex w-[min(30rem,calc(100%-24px))] -translate-x-1/2 items-center gap-3 rounded-2xl border border-line bg-surface px-4 py-3.5 text-ink no-underline shadow-[0_10px_40px_rgb(0_0_0/0.25)] desktop:top-24 desktop:right-6 desktop:left-auto desktop:w-96 desktop:translate-x-0"
         >
           <BrandMark size={40} />
           <span>

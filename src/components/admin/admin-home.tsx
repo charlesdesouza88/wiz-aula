@@ -19,7 +19,7 @@ export function AdminPage() {
   if (session.status === "signed-out" || session.person.role !== "admin") {
     return (
       <div className="card desktop:max-w-[36rem]">
-        <h1 className="text-[1.5rem] font-extrabold">Só para a secretaria</h1>
+        <h1 className="text-[1.5rem] font-bold">Só para a secretaria</h1>
         <p className="text-muted">Esta página é para quem cuida dos alunos e dos códigos de acesso da escola.</p>
         <Link href="/" className="font-bold text-primary underline underline-offset-[3px]">
           Voltar para as aulas
@@ -82,7 +82,7 @@ function AdminHome({ person }: { person: Person }) {
 
   return (
     <>
-      <h1 className="text-[1.75rem] font-extrabold">Alunos e códigos</h1>
+      <h1 className="text-[1.75rem] font-bold">Alunos e códigos</h1>
       <div className="flex flex-col gap-4 desktop:grid desktop:grid-cols-2 desktop:items-start desktop:gap-6">
         <div className="flex flex-col gap-4">
           {batch && <CodeSheet key={batch.people[0]?.code} batch={batch} onDone={() => setBatch(null)} />}

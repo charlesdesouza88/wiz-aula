@@ -1,15 +1,30 @@
+import Image from "next/image";
+import logo from "@/assets/mister-wiz-logo.png";
+import logoWhite from "@/assets/mister-wiz-logo-white.png";
+import symbol from "@/assets/mister-wiz-symbol.png";
+
+/** The MISTER WIZ wordmark at the top of every screen; the white file in the dark theme. */
+export function MisterWizLogo() {
+  return (
+    <>
+      <Image src={logo} alt="Mister Wiz" priority className="logo-light h-7 w-auto" />
+      <Image src={logoWhite} alt="Mister Wiz" priority className="logo-dark h-7 w-auto" />
+    </>
+  );
+}
+
+/** The Mister Wiz symbol tile: the white figure on the purple gradient. Decorative. */
 export function BrandMark({ size = 42 }: { size?: number }) {
   return (
-    <div
-      className="grid flex-none place-items-center rounded-xl bg-[#792D83]"
-      style={{ width: size, height: size }}
+    <Image
+      src={symbol}
+      alt=""
       aria-hidden="true"
-    >
-      <svg viewBox="0 0 24 24" fill="none" width={size * 0.57} height={size * 0.57}>
-        <rect x="2.5" y="6" width="13" height="12" rx="3" fill="#EBB22E" />
-        <path d="M16 10.5l5-3v9l-5-3z" fill="#EBB22E" />
-      </svg>
-    </div>
+      width={size}
+      height={size}
+      className="flex-none rounded-xl"
+      style={{ width: size, height: size }}
+    />
   );
 }
 

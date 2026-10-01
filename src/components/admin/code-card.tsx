@@ -36,10 +36,10 @@ export function CodeCard({ issued, onDone }: { issued: Issued; onDone: () => voi
         Código de acesso
       </h2>
       <div>
-        <p className="font-display text-[1.35rem] leading-tight font-extrabold">{issued.name}</p>
+        <p className="font-display text-[1.35rem] leading-tight font-bold">{issued.name}</p>
         <p className="text-[0.95rem] text-muted">{issued.detail}</p>
       </div>
-      <p className="font-display text-[2.1rem] leading-tight font-extrabold tracking-[0.06em] select-all">
+      <p className="font-display text-[2.1rem] leading-tight font-bold tracking-[0.06em] select-all">
         {issued.code}
       </p>
       <p className="text-[0.95rem]">

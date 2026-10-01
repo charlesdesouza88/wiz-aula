@@ -18,7 +18,7 @@ export function TurmasBox({ person, turmas }: { person: Person; turmas: Turma[] 
 
   return (
     <details className="card group">
-      <summary className="flex min-h-14 cursor-pointer list-none items-center justify-between font-display text-[1.25rem] font-extrabold [&::-webkit-details-marker]:hidden">
+      <summary className="flex min-h-14 cursor-pointer list-none items-center justify-between font-display text-[1.25rem] font-bold [&::-webkit-details-marker]:hidden">
         Turmas
         <span aria-hidden="true" className="text-[1.6rem] text-muted">
           <span className="group-open:hidden">+</span>

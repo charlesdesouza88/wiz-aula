@@ -24,7 +24,7 @@ export function StudentHome({ person }: { person: Person }) {
   if (!data.turmas.length) {
     return (
       <div className="card">
-        <h1 className="text-[1.5rem] font-extrabold">Olá, {person.name}!</h1>
+        <h1 className="text-[1.5rem] font-bold">Olá, {person.name}!</h1>
         <p className="text-muted">Você ainda não está em nenhuma turma. Fale com a escola.</p>
       </div>
     );
@@ -75,7 +75,7 @@ export function StudentHome({ person }: { person: Person }) {
                 if (!sound) enableChime();
                 setSound(!sound);
               }}
-              className={`min-h-14 cursor-pointer rounded-[14px] border-2 bg-surface px-4 py-2.5 font-bold ${
+              className={`min-h-14 cursor-pointer rounded-full border-2 bg-surface px-4 py-2.5 font-bold ${
                 sound ? "border-ok text-ok" : "border-line hover:border-primary"
               }`}
             >

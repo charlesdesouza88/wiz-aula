@@ -60,7 +60,7 @@ export function CodeSheet({ batch, onDone }: { batch: Batch; onDone: () => void 
           <li key={p.id} className="flex flex-col rounded-[14px] border-2 border-dashed border-line bg-surface p-3">
             <b className="[overflow-wrap:anywhere]">{p.name}</b>
             <span className="text-[0.9rem] text-muted">{detail}</span>
-            <span className="font-display text-[1.5rem] leading-tight font-extrabold tracking-[0.06em]">{p.code}</span>
+            <span className="font-display text-[1.5rem] leading-tight font-bold tracking-[0.06em]">{p.code}</span>
             <span className="text-[0.85rem]">
               Abra <b>{host}</b>, digite o código e toque em <b>Entrar</b>.
             </span>

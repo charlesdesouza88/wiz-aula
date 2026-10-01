@@ -56,14 +56,14 @@ export function AddPersonForm({
 
   return (
     <form className="card" onSubmit={submit} onChange={() => setError(null)} noValidate>
-      <h2 className="text-[1.5rem] font-extrabold">Adicionar pessoa</h2>
+      <h2 className="text-[1.5rem] font-bold">Adicionar pessoa</h2>
       <fieldset className="flex flex-col gap-1.5">
         <legend className="mb-1.5 text-base font-bold">Quem é</legend>
         <div className="grid grid-cols-2 gap-2">
           {(["student", "teacher"] as const).map((r) => (
             <label
               key={r}
-              className="flex min-h-14 cursor-pointer items-center gap-2.5 rounded-[14px] border-2 border-line px-3.5 has-checked:border-primary has-checked:bg-surface-2"
+              className="flex min-h-14 cursor-pointer items-center gap-2.5 rounded-full border-2 border-line px-3.5 has-checked:border-primary has-checked:bg-surface-2"
             >
               <input
                 type="radio"

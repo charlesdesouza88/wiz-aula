@@ -82,7 +82,7 @@ export function RosterList({
 
   return (
     <section className="card" aria-labelledby="rosterTitle">
-      <h2 id="rosterTitle" className="text-[1.5rem] font-extrabold">
+      <h2 id="rosterTitle" className="text-[1.5rem] font-bold">
         Pessoas da escola
       </h2>
       <div className="field">
