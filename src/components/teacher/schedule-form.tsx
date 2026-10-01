@@ -54,7 +54,7 @@ export function ScheduleForm({ person, turma, now }: { person: Person; turma: Tu
 
   return (
     <form className="card" onSubmit={submit} onChange={() => setMessage(null)} noValidate>
-      <h2 className="text-[1.5rem] font-extrabold">Agendar aula</h2>
+      <h2 className="text-[1.5rem] font-bold">Agendar aula</h2>
       <div className="grid grid-cols-1 gap-3 min-[421px]:grid-cols-2">
         <div className="field">
           <label htmlFor="schedDate">Dia</label>

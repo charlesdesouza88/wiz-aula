@@ -1,0 +1,60 @@
+<!-- @dsCard height=288 -->
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Wiz Aula</title>
+<style>
+  html, body { margin:0; height:100%; }
+  body { background:var(--bg); color:var(--ink); font-family:var(--font-body); overflow:hidden; padding:0; }
+  .cover { position:relative; width:960px; height:288px; overflow:hidden; }
+  .art { position:absolute; top:0; left:480px; width:480px; height:288px; overflow:hidden; }
+  .art svg { display:block; width:480px; height:288px; }
+  .brand { fill:var(--primary); }
+  .gold { fill:var(--gold); }
+  .tint { fill:var(--gold-soft); }
+  .deep { fill:var(--ink); }
+  .live { fill:var(--live); }
+  .hero { rx:var(--radius-hero); }
+  .card { rx:var(--radius-card); }
+  .pill { rx:4px; }
+  .pill.on-deep { fill:var(--gold); }
+  .pill.on-tint { fill:var(--primary); }
+  .words { position:absolute; left:var(--space-8); bottom:var(--space-8); max-width:440px; }
+  .name { margin:0; font-family:var(--font-display); font-size:96px; line-height:.92; font-weight:700; color:var(--ink); }
+  .tag { margin:var(--space-3) 0 0 4px; font-size:14px; line-height:20px; color:var(--muted); }
+</style>
+</head>
+<body>
+<div class="cover">
+<div class="art" aria-hidden="true">
+<svg viewBox="0 0 480 288" width="480" height="288">
+<!--
+  blocks      primary 168×248 slab bled off the top (the Mister Wiz purple, largest) · gold 152×84 (join-min tall: the join button) · gold-soft 152×124 tint (the live hero) · ink 136×232 bled off the right · one live 12px disc
+  arrangement one tall purple slab with satellites, bottoms on one line space-6 above the edge, space-4 gutters
+  pattern     pills, from "touch targets ≥ 56px, big rounded buttons": 8px pills at a space-6 pitch in gold across the ink block, three in primary on the tint
+  scales      gutters space-4 (16); pitch space-6 (24); corners radius-hero (slab, ink), radius-card (gold, tint), pills radius-pill as rx 4 (half of 8)
+-->
+<rect class="brand hero" x="16" y="-24" width="168" height="288" rx="24"/>
+<rect class="gold card" x="200" y="32" width="152" height="84" rx="20"/>
+<rect class="tint card" x="200" y="140" width="152" height="124" rx="20"/>
+<rect class="deep hero" x="368" y="32" width="136" height="232" rx="24"/>
+<circle class="live" cx="168" cy="248" r="6"/>
+<rect class="pill on-deep" x="388" y="64" width="64" height="8" rx="4"/>
+<rect class="pill on-deep" x="388" y="88" width="88" height="8" rx="4"/>
+<rect class="pill on-deep" x="388" y="112" width="48" height="8" rx="4"/>
+<rect class="pill on-deep" x="388" y="136" width="72" height="8" rx="4"/>
+<rect class="pill on-deep" x="388" y="160" width="32" height="8" rx="4"/>
+<rect class="pill on-tint" x="220" y="200" width="72" height="8" rx="4"/>
+<rect class="pill on-tint" x="220" y="224" width="112" height="8" rx="4"/>
+<rect class="pill on-tint" x="220" y="176" width="40" height="8" rx="4"/>
+</svg>
+</div>
+<div class="words">
+<h1 class="name">Wiz Aula</h1>
+<p class="tag">Um toque para entrar na aula.</p>
+</div>
+</div>
+<script>/* cover */</script>
+</body>
+</html>

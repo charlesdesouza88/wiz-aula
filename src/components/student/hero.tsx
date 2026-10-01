@@ -16,7 +16,7 @@ type Props = {
 
 /** The one primary action on the student screen: the next class and the join button. */
 export function Hero({ turma, showTurma, live, next, now, device, onJoin }: Props) {
-  const base = "flex flex-col gap-3.5 rounded-3xl border px-5 py-6 shadow-card tablet:px-7 tablet:py-8";
+  const base = "flex flex-col gap-3.5 rounded-2xl border px-5 py-6 shadow-card tablet:px-7 tablet:py-8";
 
   if (live) {
     const early = now < live.startAt;
@@ -26,7 +26,7 @@ export function Hero({ turma, showTurma, live, next, now, device, onJoin }: Prop
           <span className="live-dot" aria-hidden="true" />
           {early ? "Pode entrar" : "Aula ao vivo agora"}
         </span>
-        <h1 className="text-[2rem] font-extrabold">
+        <h1 className="text-[2rem] font-bold">
           {live.type === "lightning" ? "Aula relâmpago" : live.title || "Aula de inglês"}
         </h1>
         <p className="text-muted">
@@ -39,7 +39,7 @@ export function Hero({ turma, showTurma, live, next, now, device, onJoin }: Prop
           target="_blank"
           rel="noopener"
           onClick={() => onJoin(live)}
-          className="join flex min-h-[84px] items-center justify-center gap-3 rounded-[20px] bg-gold px-4 text-center font-display text-[1.7rem] font-extrabold text-on-gold no-underline hover:brightness-105"
+          className="join flex min-h-[84px] items-center justify-center gap-3 rounded-full bg-gold px-4 text-center font-display text-[1.7rem] font-bold text-on-gold no-underline hover:brightness-105"
         >
           <CameraIcon className="size-8 flex-none" />
           Entrar na aula
@@ -65,10 +65,10 @@ export function Hero({ turma, showTurma, live, next, now, device, onJoin }: Prop
       <section className={`${base} border-line bg-surface`}>
         <p className="eyebrow">Próxima aula</p>
         <div>
-          <p className="font-display text-[2.4rem] leading-none font-extrabold tabular-nums">
+          <p className="font-display text-[2.4rem] leading-none font-bold tabular-nums">
             {formatTime(next.startAt)}
           </p>
-          <h1 className="mt-1 text-[1.5rem] font-extrabold">{formatDay(next.startAt, now)}</h1>
+          <h1 className="mt-1 text-[1.5rem] font-bold">{formatDay(next.startAt, now)}</h1>
         </div>
         <p className="text-muted">
           {formatCountdown(next.startAt - now)}
@@ -76,7 +76,7 @@ export function Hero({ turma, showTurma, live, next, now, device, onJoin }: Prop
           {next.title && ` · ${next.title}`}
         </p>
         <p
-          className="flex min-h-[84px] items-center justify-center rounded-[20px] bg-surface-2 px-4 text-center font-display text-[1.2rem] font-extrabold text-muted"
+          className="flex min-h-[84px] items-center justify-center rounded-full bg-surface-2 px-4 text-center font-display text-[1.2rem] font-bold text-muted"
         >
           O botão acende 10 minutos antes
         </p>
@@ -87,7 +87,7 @@ export function Hero({ turma, showTurma, live, next, now, device, onJoin }: Prop
   return (
     <section className={`${base} border-line bg-surface`}>
       <p className="eyebrow">Nenhuma aula marcada</p>
-      <h1 className="text-[1.5rem] font-extrabold">Tudo tranquilo por aqui</h1>
+      <h1 className="text-[1.5rem] font-bold">Tudo tranquilo por aqui</h1>
       <p className="text-muted">
         Quando o professor começar uma aula, você recebe um aviso e o botão amarelo aparece aqui.
       </p>

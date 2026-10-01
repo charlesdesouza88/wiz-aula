@@ -18,7 +18,7 @@ export function GuideSteps() {
   return (
     <>
       <div className="card">
-        <h1 className="text-[1.75rem] font-extrabold">Como deixar tudo pronto</h1>
+        <h1 className="text-[1.75rem] font-bold">Como deixar tudo pronto</h1>
         <p className="text-muted">Faça uma vez só, com calma. Depois é só tocar no aviso.</p>
         <div className="flex flex-wrap gap-2" role="group" aria-label="Escolha o aparelho">
           {GUIDE_TABS.map((t) => (
@@ -27,7 +27,7 @@ export function GuideSteps() {
               type="button"
               aria-pressed={t.id === current}
               onClick={() => writePref(PREF.guide, t.id)}
-              className={`min-h-14 cursor-pointer rounded-[14px] border-2 px-4 py-2.5 font-bold hover:border-primary ${
+              className={`min-h-14 cursor-pointer rounded-full border-2 px-4 py-2.5 font-bold hover:border-primary ${
                 t.id === current ? "border-primary bg-surface-2" : "border-line bg-surface"
               }`}
             >
@@ -46,11 +46,11 @@ export function GuideSteps() {
         {guide.steps.map((step, i) => (
           <li
             key={step.title}
-            className="grid grid-cols-[44px_minmax(0,1fr)] items-start gap-3.5 rounded-[18px] border border-line bg-surface p-4"
+            className="grid grid-cols-[44px_minmax(0,1fr)] items-start gap-3.5 rounded-2xl border border-line bg-surface p-4"
           >
             <span
               aria-hidden="true"
-              className="grid size-11 place-items-center rounded-full bg-primary font-display text-[1.4rem] font-extrabold text-on-primary"
+              className="grid size-11 place-items-center rounded-full bg-primary font-display text-[1.4rem] font-bold text-on-primary"
             >
               {i + 1}
             </span>

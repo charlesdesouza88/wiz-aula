@@ -3,22 +3,27 @@
 /* Mister Wiz brand tokens. Light by default, dark via the system setting
    or an explicit data-theme on <html>. */
 :root {
-  --bg: #f6f1f7;
+  --bg: #f9f5fa;
   --surface: #ffffff;
   --surface-2: #f0e6f3;
   --ink: #2d1040;
   --muted: #66566f;
-  --line: #e3d5e8;
+  --line: #d9c7e0;
   --primary: #792d83;
   --primary-hover: #5a1a64;
   --on-primary: #ffffff;
   --gold: #ebb22e;
   --gold-soft: #fbefcf;
+  /* Class-materials highlight gold: highlighted cells behind ink, never a button. */
+  --gold-light: #efd27e;
   --on-gold: #2d1040;
   --live: #d23b3b;
   /* Darker red for small "ao vivo" text so it passes AA on gold-soft. */
   --live-ink: #b8302f;
   --on-live: #ffffff;
+  /* Dark-purple header bars of tables and lists, as in the class materials. */
+  --header: #5a1a64;
+  --on-header: #ffffff;
   --ok: #2c7a3f;
   --err-bg: #fce8e8;
   --err-ink: #9b1c1c;
@@ -39,10 +44,13 @@
     --on-primary: #1b0a24;
     --gold: #f0be45;
     --gold-soft: #3a2a12;
+    --gold-light: #4d3a12;
     --on-gold: #1b0a24;
     --live: #ff6b6b;
     --live-ink: #ff6b6b;
     --on-live: #1b0a24;
+    --header: #5a1a64;
+    --on-header: #ffffff;
     --ok: #6fcf8e;
     --err-bg: #3b1618;
     --err-ink: #ffb4b4;
@@ -63,10 +71,13 @@
   --on-primary: #1b0a24;
   --gold: #f0be45;
   --gold-soft: #3a2a12;
+  --gold-light: #4d3a12;
   --on-gold: #1b0a24;
   --live: #ff6b6b;
   --live-ink: #ff6b6b;
   --on-live: #1b0a24;
+  --header: #5a1a64;
+  --on-header: #ffffff;
   --ok: #6fcf8e;
   --err-bg: #3b1618;
   --err-ink: #ffb4b4;
@@ -85,16 +96,20 @@
   --color-on-primary: var(--on-primary);
   --color-gold: var(--gold);
   --color-gold-soft: var(--gold-soft);
+  --color-gold-light: var(--gold-light);
   --color-on-gold: var(--on-gold);
   --color-live: var(--live);
   --color-live-ink: var(--live-ink);
   --color-on-live: var(--on-live);
+  --color-header: var(--header);
+  --color-on-header: var(--on-header);
   --color-ok: var(--ok);
   --color-err-bg: var(--err-bg);
   --color-err-ink: var(--err-ink);
   --shadow-card: var(--shadow);
-  --font-display: var(--font-baloo), "Trebuchet MS", system-ui, sans-serif;
-  --font-body: var(--font-atkinson), system-ui, -apple-system, "Segoe UI", sans-serif;
+  /* One face, Carlito (metric-compatible with Calibri, the class-materials font); headings set bold. */
+  --font-display: var(--font-carlito), Calibri, system-ui, sans-serif;
+  --font-body: var(--font-carlito), Calibri, system-ui, -apple-system, "Segoe UI", sans-serif;
   --breakpoint-tablet: 640px;
   --breakpoint-desktop: 960px;
 }
@@ -102,6 +117,9 @@
 /* Text-size control: 100 / 112.5 / 125 %. Every size below is in rem. */
 html {
   font-size: 100%;
+  /* The app's own pull to refresh (PullToRefresh) replaces the browser's (Chrome on Android, Safari 15+
+     in a tab) and the iOS bounce at the top, so a pull refreshes once and looks the same on every phone. */
+  overscroll-behavior-y: none;
 }
 html.wa-size-1 {
   font-size: 112.5%;
@@ -134,10 +152,11 @@ html.wa-size-2 {
 
 @layer components {
   .card {
-    @apply flex flex-col gap-3.5 rounded-[20px] border border-line bg-surface p-5;
+    @apply flex flex-col gap-3.5 rounded-2xl border border-line bg-surface p-5;
   }
+  /* Purple capsule label: the banner shape of the Mister Wiz class materials. */
   .eyebrow {
-    @apply text-[0.8rem] font-bold tracking-[0.08em] text-muted uppercase;
+    @apply inline-block w-fit rounded-full bg-primary px-3.5 py-1 text-[0.8rem] font-bold tracking-[0.08em] text-on-primary uppercase;
   }
   .field {
     @apply flex flex-col gap-1.5;
@@ -149,13 +168,13 @@ html.wa-size-2 {
     @apply min-h-14 w-full rounded-[14px] border-2 border-line bg-surface px-3.5 py-2.5 focus:border-primary focus:outline-none;
   }
   .btn {
-    @apply min-h-14 cursor-pointer rounded-2xl bg-primary px-4.5 py-3 text-[1.1rem] font-bold text-on-primary hover:bg-primary-hover;
+    @apply min-h-14 cursor-pointer rounded-full bg-primary px-4.5 py-3 text-[1.1rem] font-bold text-on-primary hover:bg-primary-hover;
   }
   .btn-gold {
     @apply bg-gold text-on-gold hover:bg-gold hover:brightness-105;
   }
   .btn-ghost {
-    @apply min-h-14 cursor-pointer rounded-2xl border-2 border-line bg-transparent px-3 py-2 text-[0.95rem] font-bold text-primary hover:border-primary;
+    @apply min-h-14 cursor-pointer rounded-full border-2 border-line bg-transparent px-4 py-2 text-[0.95rem] font-bold text-primary hover:border-primary;
   }
   .pill {
     @apply rounded-full px-2.5 py-1 text-[0.8rem] font-bold whitespace-nowrap;
@@ -168,7 +187,7 @@ html.wa-size-2 {
     @apply mr-1 inline-block align-[-0.125em];
   }
   .msg-err {
-    @apply rounded-xl bg-err-bg px-3.5 py-2.5 text-base text-err-ink;
+    @apply rounded-[14px] bg-err-bg px-3.5 py-2.5 text-base text-err-ink;
   }
   .msg-ok {
     @apply text-base font-bold text-ok;
@@ -200,7 +219,19 @@ html.wa-size-2 {
   box-shadow: 0 2px 0 color-mix(in srgb, var(--gold) 55%, #000);
 }
 
+@keyframes pull-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.pull-spin {
+  animation: pull-spin 0.8s linear infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
+  .pull-spin {
+    animation: none;
+  }
   .live-dot {
     animation: none;
   }
@@ -227,6 +258,10 @@ html.wa-size-2 {
   .print-card * {
     color: #000 !important;
   }
+  .print-card .eyebrow {
+    background: none !important;
+    padding: 0 !important;
+  }
   .print-card:has(.code-sheet) {
     border: none !important;
     padding: 0 !important;
@@ -239,4 +274,23 @@ html.wa-size-2 {
     background: #fff !important;
     border-color: #000 !important;
   }
+}
+
+/* The Mister Wiz wordmark: the white file in the dark theme. */
+.logo-dark {
+  display: none;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .logo-light {
+    display: none;
+  }
+  :root:not([data-theme="light"]) .logo-dark {
+    display: block;
+  }
+}
+:root[data-theme="dark"] .logo-light {
+  display: none;
+}
+:root[data-theme="dark"] .logo-dark {
+  display: block;
 }

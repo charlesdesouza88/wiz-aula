@@ -578,4 +578,8 @@ select public.admin_remove_person(person_id) from batch;
 reset role;
 select test.ok(not exists (select 1 from public.people where name in ('Davi', 'Eva Souza')), 'the admin removes them again');
 
+select test.ok((select count(*) from pg_publication_tables
+                 where pubname = 'supabase_realtime' and tablename in ('aulas', 'turmas', 'enrollments')) = 3,
+               'open screens hear about classes, turmas and enrolments');
+
 \echo 'All database tests passed.'

@@ -50,7 +50,7 @@ export function BulkAddForm({
 
   return (
     <details className="card group">
-      <summary className="flex min-h-14 cursor-pointer list-none items-center justify-between font-display text-[1.25rem] font-extrabold [&::-webkit-details-marker]:hidden">
+      <summary className="flex min-h-14 cursor-pointer list-none items-center justify-between font-display text-[1.25rem] font-bold [&::-webkit-details-marker]:hidden">
         Adicionar vários alunos
         <span aria-hidden="true" className="text-[1.6rem] text-muted">
           <span className="group-open:hidden">+</span>

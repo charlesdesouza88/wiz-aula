@@ -23,7 +23,7 @@ export function SizeButton() {
       type="button"
       onClick={cycle}
       aria-label={size === 2 ? "Voltar ao tamanho normal das letras" : "Aumentar o tamanho das letras"}
-      className="min-h-14 min-w-14 cursor-pointer rounded-xl border border-line bg-surface px-3 py-2 font-bold hover:border-primary"
+      className="min-h-14 min-w-14 cursor-pointer rounded-full border border-line bg-surface px-3 py-2 font-bold hover:border-primary"
     >
       {LABELS[size]}
     </button>

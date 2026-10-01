@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { loadRoster } from "@/lib/admin";
+import { REFRESH_EVENT } from "@/lib/pull";
 import { useData } from "@/lib/data";
 import type { RosterEntry, RosterFilter } from "@/lib/roster";
 import { useSession, type Person } from "@/lib/session";
@@ -19,7 +20,7 @@ export function AdminPage() {
   if (session.status === "signed-out" || session.person.role !== "admin") {
     return (
       <div className="card desktop:max-w-[36rem]">
-        <h1 className="text-[1.5rem] font-extrabold">Só para a secretaria</h1>
+        <h1 className="text-[1.5rem] font-bold">Só para a secretaria</h1>
         <p className="text-muted">Esta página é para quem cuida dos alunos e dos códigos de acesso da escola.</p>
         <Link href="/" className="font-bold text-primary underline underline-offset-[3px]">
           Voltar para as aulas
@@ -61,12 +62,16 @@ function AdminHome({ person }: { person: Person }) {
   }, [version]);
 
   useEffect(() => {
-    // Devices and alerts change as people sign in.
+    // Devices and alerts change as people sign in; also reload on pull to refresh.
     const onVisible = () => {
       if (document.visibilityState === "visible") reload();
     };
     document.addEventListener("visibilitychange", onVisible);
-    return () => document.removeEventListener("visibilitychange", onVisible);
+    window.addEventListener(REFRESH_EVENT, reload);
+    return () => {
+      document.removeEventListener("visibilitychange", onVisible);
+      window.removeEventListener(REFRESH_EVENT, reload);
+    };
   }, [reload]);
 
   const filterTurma = turmas.some((t) => t.id === filter) ? filter : null;
@@ -82,7 +87,7 @@ function AdminHome({ person }: { person: Person }) {
 
   return (
     <>
-      <h1 className="text-[1.75rem] font-extrabold">Alunos e códigos</h1>
+      <h1 className="text-[1.75rem] font-bold">Alunos e códigos</h1>
       <div className="flex flex-col gap-4 desktop:grid desktop:grid-cols-2 desktop:items-start desktop:gap-6">
         <div className="flex flex-col gap-4">
           {batch && <CodeSheet key={batch.people[0]?.code} batch={batch} onDone={() => setBatch(null)} />}
