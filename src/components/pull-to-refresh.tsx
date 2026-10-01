@@ -17,6 +17,7 @@ export function PullToRefresh() {
   const [offset, setOffset] = useState(0);
   const [ready, setReady] = useState(false);
   const startY = useRef<number | null>(null);
+  const startX = useRef(0);
   const readyRef = useRef(false);
   const busy = useRef(false);
 
@@ -27,8 +28,7 @@ export function PullToRefresh() {
       setOffset(PULL_READY);
       const minimum = new Promise((r) => setTimeout(r, 600));
       try {
-        await refreshSession();
-        await refreshData();
+        await Promise.all([refreshSession(), refreshData()]);
         window.dispatchEvent(new Event(REFRESH_EVENT));
       } finally {
         await minimum;
@@ -40,32 +40,44 @@ export function PullToRefresh() {
       }
     }
 
-    function onStart(e: TouchEvent) {
-      // Only a pull that starts with the page at the very top, one finger.
-      startY.current = !busy.current && window.scrollY <= 0 && e.touches.length === 1 ? e.touches[0].clientY : null;
+    function reset() {
+      startY.current = null;
+      readyRef.current = false;
+      setOffset(0);
+      setReady(false);
+      setPhase("idle");
     }
-    function onMove(e: TouchEvent) {
-      if (startY.current === null) return;
-      if (window.scrollY > 0) {
-        startY.current = null;
-        setOffset(0);
-        setPhase("idle");
+    function onStart(e: TouchEvent) {
+      if (busy.current) return;
+      // Only a one-finger pull that starts with the page at the very top. A second
+      // finger (pinch to zoom) cancels a pull in progress.
+      if (e.touches.length !== 1 || window.scrollY > 0) {
+        if (startY.current !== null) reset();
         return;
       }
-      const p = pullProgress(e.touches[0].clientY - startY.current);
+      startY.current = e.touches[0].clientY;
+      startX.current = e.touches[0].clientX;
+    }
+    function onMove(e: TouchEvent) {
+      if (startY.current === null || busy.current) return;
+      const dy = e.touches[0].clientY - startY.current;
+      const dx = e.touches[0].clientX - startX.current;
+      // The page scrolled, or the finger is mostly moving sideways: not a pull.
+      if (window.scrollY > 0 || (dy < 24 && Math.abs(dx) > Math.abs(dy))) {
+        reset();
+        return;
+      }
+      const p = pullProgress(dy);
       readyRef.current = p.ready;
       setOffset(p.offset);
       setReady(p.ready);
       setPhase(p.offset > 0 ? "pulling" : "idle");
     }
     function onEnd() {
-      if (startY.current === null) return;
+      if (startY.current === null || busy.current) return;
       startY.current = null;
       if (readyRef.current) void refresh();
-      else {
-        setOffset(0);
-        setPhase("idle");
-      }
+      else reset();
     }
 
     window.addEventListener("touchstart", onStart, { passive: true });

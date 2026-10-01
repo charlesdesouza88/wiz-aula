@@ -117,8 +117,9 @@
 /* Text-size control: 100 / 112.5 / 125 %. Every size below is in rem. */
 html {
   font-size: 100%;
-  /* The app's own pull to refresh (PullToRefresh) replaces the browser's, so it is the same on every phone. */
-  overscroll-behavior-y: contain;
+  /* The app's own pull to refresh (PullToRefresh) replaces the browser's (Chrome on Android, Safari 15+
+     in a tab) and the iOS bounce at the top, so a pull refreshes once and looks the same on every phone. */
+  overscroll-behavior-y: none;
 }
 html.wa-size-1 {
   font-size: 112.5%;
