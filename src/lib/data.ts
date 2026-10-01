@@ -98,6 +98,8 @@ function start(person: Person) {
     .channel("aulas-turmas")
     .on("postgres_changes", { event: "*", schema: "public", table: "aulas" }, reloadSoon)
     .on("postgres_changes", { event: "*", schema: "public", table: "turmas" }, reloadSoon)
+    // A student added to (or removed from) a turma sees it without reopening the app.
+    .on("postgres_changes", { event: "*", schema: "public", table: "enrollments" }, reloadSoon)
     .subscribe();
   poll = setInterval(() => void load(), POLL_MS);
   document.addEventListener("visibilitychange", onVisible);
@@ -135,6 +137,11 @@ const SERVER_STATE: DataState = { data: null, error: false };
 export function useData(person: Person): DataState {
   useEffect(() => start(person), [person]);
   return useSyncExternalStore(subscribe, getState, () => SERVER_STATE);
+}
+
+/** Reloads turmas and classes now (pull to refresh); does nothing when signed out. */
+export async function refreshData() {
+  if (personId) await load();
 }
 
 /** Stops syncing, e.g. after signing out. */
