@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { loadRoster } from "@/lib/admin";
+import { REFRESH_EVENT } from "@/lib/pull";
 import { useData } from "@/lib/data";
 import type { RosterEntry, RosterFilter } from "@/lib/roster";
 import { useSession, type Person } from "@/lib/session";
@@ -61,12 +62,16 @@ function AdminHome({ person }: { person: Person }) {
   }, [version]);
 
   useEffect(() => {
-    // Devices and alerts change as people sign in.
+    // Devices and alerts change as people sign in; also reload on pull to refresh.
     const onVisible = () => {
       if (document.visibilityState === "visible") reload();
     };
     document.addEventListener("visibilitychange", onVisible);
-    return () => document.removeEventListener("visibilitychange", onVisible);
+    window.addEventListener(REFRESH_EVENT, reload);
+    return () => {
+      document.removeEventListener("visibilitychange", onVisible);
+      window.removeEventListener(REFRESH_EVENT, reload);
+    };
   }, [reload]);
 
   const filterTurma = turmas.some((t) => t.id === filter) ? filter : null;

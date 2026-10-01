@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { Carlito } from "next/font/google";
 import { InlineScript } from "@/components/inline-script";
 import { MainNav } from "@/components/main-nav";
+import { PullToRefresh } from "@/components/pull-to-refresh";
 import { PwaSetup } from "@/components/pwa-setup";
 import { SizeButton } from "@/components/size-button";
 import { PREF } from "@/lib/pref-keys";
@@ -53,6 +54,7 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
           <MainNav />
           <main className="flex flex-col gap-4">{children}</main>
           <PwaSetup />
+          <PullToRefresh />
         </div>
       </body>
     </html>

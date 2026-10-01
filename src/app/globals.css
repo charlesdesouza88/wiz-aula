@@ -117,6 +117,8 @@
 /* Text-size control: 100 / 112.5 / 125 %. Every size below is in rem. */
 html {
   font-size: 100%;
+  /* The app's own pull to refresh (PullToRefresh) replaces the browser's, so it is the same on every phone. */
+  overscroll-behavior-y: contain;
 }
 html.wa-size-1 {
   font-size: 112.5%;
@@ -216,7 +218,19 @@ html.wa-size-2 {
   box-shadow: 0 2px 0 color-mix(in srgb, var(--gold) 55%, #000);
 }
 
+@keyframes pull-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.pull-spin {
+  animation: pull-spin 0.8s linear infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
+  .pull-spin {
+    animation: none;
+  }
   .live-dot {
     animation: none;
   }

@@ -45,6 +45,9 @@ async function refresh() {
   }
 }
 
+/** Re-reads who is signed in on this device (pull to refresh). */
+export const refreshSession = refresh;
+
 function subscribe(listener: () => void) {
   listeners.add(listener);
   if (!started) {
