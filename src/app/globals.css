@@ -16,6 +16,9 @@
   --gold-soft: #fbefcf;
   --on-gold: #2d1040;
   --live: #d23b3b;
+  /* Darker red for small "ao vivo" text so it passes AA on gold-soft. */
+  --live-ink: #b8302f;
+  --on-live: #ffffff;
   --ok: #2c7a3f;
   --err-bg: #fce8e8;
   --err-ink: #9b1c1c;
@@ -38,6 +41,8 @@
     --gold-soft: #3a2a12;
     --on-gold: #1b0a24;
     --live: #ff6b6b;
+    --live-ink: #ff6b6b;
+    --on-live: #1b0a24;
     --ok: #6fcf8e;
     --err-bg: #3b1618;
     --err-ink: #ffb4b4;
@@ -60,6 +65,8 @@
   --gold-soft: #3a2a12;
   --on-gold: #1b0a24;
   --live: #ff6b6b;
+  --live-ink: #ff6b6b;
+  --on-live: #1b0a24;
   --ok: #6fcf8e;
   --err-bg: #3b1618;
   --err-ink: #ffb4b4;
@@ -80,6 +87,8 @@
   --color-gold-soft: var(--gold-soft);
   --color-on-gold: var(--on-gold);
   --color-live: var(--live);
+  --color-live-ink: var(--live-ink);
+  --color-on-live: var(--on-live);
   --color-ok: var(--ok);
   --color-err-bg: var(--err-bg);
   --color-err-ink: var(--err-ink);
@@ -197,5 +206,37 @@ html.wa-size-2 {
   }
   .join:active {
     transform: none;
+  }
+}
+
+/* Printing new access codes: only the code card or sheet, in black on white,
+   flowing over as many pages as a long list needs. */
+@media print {
+  body:has(.print-card) {
+    background: #fff !important;
+  }
+  body:has(.print-card) > div > :not(main),
+  body:has(.print-card) main *:not(:has(.print-card)):not(.print-card):not(.print-card *),
+  .no-print {
+    display: none !important;
+  }
+  .print-card {
+    background: #fff !important;
+    border: 2px solid #000 !important;
+  }
+  .print-card * {
+    color: #000 !important;
+  }
+  .print-card:has(.code-sheet) {
+    border: none !important;
+    padding: 0 !important;
+  }
+  .code-sheet {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+  .code-sheet > li {
+    break-inside: avoid;
+    background: #fff !important;
+    border-color: #000 !important;
   }
 }

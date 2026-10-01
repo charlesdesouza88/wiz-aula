@@ -5,6 +5,7 @@
 --   Teacher Chuck:    WIZ-PROF-01
 --   Student Ana:      WIZ-ALUNO-01
 --   Student Bruno:    WIZ-ALUNO-02
+--   Admin Secretaria: WIZ-ADMIN-01
 
 insert into public.schools (id, name, city) values
   ('00000000-0000-4000-8000-000000000001', 'Mister Wiz · Escola de Líderes', null);
@@ -13,7 +14,8 @@ create temporary table seed_people (id uuid, role public.person_role, name text,
 insert into seed_people values
   ('00000000-0000-4000-8000-000000000101', 'teacher', 'Chuck', 'WIZPROF01'),
   ('00000000-0000-4000-8000-000000000201', 'student', 'Ana (teste)', 'WIZALUNO01'),
-  ('00000000-0000-4000-8000-000000000202', 'student', 'Bruno (teste)', 'WIZALUNO02');
+  ('00000000-0000-4000-8000-000000000202', 'student', 'Bruno (teste)', 'WIZALUNO02'),
+  ('00000000-0000-4000-8000-000000000901', 'admin', 'Secretaria', 'WIZADMIN01');
 
 insert into public.people (id, school_id, role, name)
 select id, '00000000-0000-4000-8000-000000000001', role, name from seed_people;

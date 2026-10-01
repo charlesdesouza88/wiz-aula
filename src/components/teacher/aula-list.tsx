@@ -37,7 +37,7 @@ export function AulaList({ aulas, turma, now }: { aulas: Aula[]; turma: Turma | 
 }
 
 function StatusPill({ aula, live, over }: { aula: Aula; live: boolean; over: boolean }) {
-  if (live) return <span className="pill bg-live text-white">Ao vivo</span>;
+  if (live) return <span className="pill bg-live text-on-live">Ao vivo</span>;
   if (over) return <span className="pill border border-line text-muted">Encerrada</span>;
   if (aula.type === "lightning") return <span className="pill bg-gold text-on-gold">Relâmpago</span>;
   return <span className="pill bg-surface-2 text-ink">Agendada</span>;
