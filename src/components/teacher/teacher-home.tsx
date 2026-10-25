@@ -5,6 +5,7 @@ import { PREF } from "@/lib/pref-keys";
 import { useData } from "@/lib/data";
 import type { Person } from "@/lib/session";
 import { InstallCard } from "@/components/install-card";
+import { LoadProblem } from "@/components/service-banner";
 import { AulaList } from "./aula-list";
 import { LightningForm } from "./lightning-form";
 import { ScheduleForm } from "./schedule-form";
@@ -16,11 +17,7 @@ export function TeacherHome({ person }: { person: Person }) {
   const saved = usePref(PREF.profTurma);
 
   if (!data || now === null || saved === undefined) {
-    return (
-      <p className={error ? "msg-err" : "text-muted"}>
-        {error ? "Não deu para carregar as turmas. Confira a internet." : "Carregando…"}
-      </p>
-    );
+    return error ? <LoadProblem what="carregar as turmas" /> : <p className="text-muted">Carregando…</p>;
   }
 
   // Teachers manage their own turmas; a school admin manages all of them.

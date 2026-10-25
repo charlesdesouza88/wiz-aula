@@ -1,6 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import { troubleText } from "@/lib/service";
+import { useServiceStatus } from "@/lib/service-status";
 import { useState } from "react";
 import { ShareIcon } from "@/components/icons";
 import { useAlerts } from "@/lib/push";
@@ -11,6 +13,7 @@ export function AlertsCard({ person, device }: { person: Person; device: "androi
   const { state, enable } = useAlerts(person);
   const [busy, setBusy] = useState(false);
   const [failed, setFailed] = useState(false);
+  const service = useServiceStatus();
 
   if (!state || state === "not-configured") return null;
 
@@ -74,7 +77,7 @@ export function AlertsCard({ person, device }: { person: Person; device: "androi
     <div className="card">
       <b>Avisos da aula</b>
       <p className="text-[0.95rem] text-muted">Receba um aviso neste aparelho quando a aula começar.</p>
-      {failed && <p className="msg-err">Não deu para ligar os avisos agora. Confira a internet e tente de novo.</p>}
+      {failed && <p className="msg-err">{troubleText(service, "ligar os avisos")}</p>}
       <button
         type="button"
         className="btn"

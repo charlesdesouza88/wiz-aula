@@ -2,6 +2,7 @@
 
 import { useState, type FormEvent } from "react";
 import type { Turma } from "@/lib/aulas";
+import { failureText } from "@/lib/service-status";
 import { formatDay, formatTime } from "@/lib/format";
 import { MEET_LINK_ERROR, normalizeMeetLink, shortMeetLink } from "@/lib/meet";
 import { scheduleAulas } from "@/lib/data";
@@ -37,8 +38,8 @@ export function ScheduleForm({ person, turma, now }: { person: Person; turma: Tu
     setBusy(true);
     try {
       await scheduleAulas(person, turma, { startAt, durationMin: Number(duration), title: title.trim(), meetLink, weeks });
-    } catch {
-      return setMessage({ kind: "err", text: "Não deu para salvar agora. Confira a internet e tente de novo." });
+    } catch (err) {
+      return setMessage({ kind: "err", text: await failureText(err, "agendar a aula") });
     } finally {
       setBusy(false);
     }

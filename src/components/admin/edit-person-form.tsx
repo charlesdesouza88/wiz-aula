@@ -2,6 +2,7 @@
 
 import { useState, type FormEvent } from "react";
 import { adminError, updatePerson } from "@/lib/admin";
+import { failureText } from "@/lib/service-status";
 import type { Turma } from "@/lib/aulas";
 import type { RosterEntry } from "@/lib/roster";
 import { FormMessage } from "@/components/form-message";
@@ -9,7 +10,6 @@ import { FormMessage } from "@/components/form-message";
 const ERRORS = {
   invalid: "Confira o nome.",
   "not-allowed": "Não é possível mudar esta pessoa.",
-  offline: "Não deu para salvar agora. Confira a internet e tente de novo.",
 } as const;
 
 /** Fix a name; for a student, also choose their turmas. */
@@ -40,7 +40,8 @@ export function EditPersonForm({
       await updatePerson(entry.id, clean, student ? chosen : null);
       onSaved(clean);
     } catch (err) {
-      setError(ERRORS[adminError(err)]);
+      const kind = adminError(err);
+      setError(kind === "offline" ? await failureText(err, "salvar") : ERRORS[kind]);
       setBusy(false);
     }
   }

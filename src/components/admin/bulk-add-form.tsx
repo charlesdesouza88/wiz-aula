@@ -2,6 +2,7 @@
 
 import { useState, type FormEvent } from "react";
 import { addStudents, adminError } from "@/lib/admin";
+import { failureText } from "@/lib/service-status";
 import type { Turma } from "@/lib/aulas";
 import { MAX_NAMES, parseNames } from "@/lib/roster";
 import { FormMessage } from "@/components/form-message";
@@ -10,7 +11,6 @@ import type { Batch } from "./code-sheet";
 const ERRORS = {
   invalid: "Confira os nomes (até 80 letras cada) e a turma.",
   "not-allowed": "Só a secretaria pode adicionar alunos.",
-  offline: "Não deu para salvar agora. Confira a internet e tente de novo. Ninguém foi adicionado.",
 } as const;
 
 /** Paste a column of names from the roster spreadsheet; everyone gets a code at once. */
@@ -42,7 +42,8 @@ export function BulkAddForm({
       setText("");
       onAdded({ turma: turma?.name ?? null, people });
     } catch (err) {
-      setError(ERRORS[adminError(err)]);
+      const kind = adminError(err);
+      setError(kind === "offline" ? `${await failureText(err, "salvar")} Ninguém foi adicionado.` : ERRORS[kind]);
     } finally {
       setBusy(false);
     }

@@ -2,13 +2,12 @@
 
 import { useState, type FormEvent } from "react";
 import type { Turma } from "@/lib/aulas";
+import { failureText } from "@/lib/service-status";
 import { addTurma, deleteTurma, updateTurma } from "@/lib/data";
 import { MEET_LINK_ERROR, normalizeMeetLink, shortMeetLink } from "@/lib/meet";
 import type { Person } from "@/lib/session";
 import { ConfirmButton } from "@/components/confirm-button";
 import { FormMessage, type Message } from "@/components/form-message";
-
-const SAVE_ERROR = "Não deu para salvar agora. Confira a internet e tente de novo.";
 
 type TurmaValues = { name: string; nivel: string; horario: string; meetLink: string | null };
 
@@ -70,7 +69,7 @@ export function TurmasBox({ person, turmas }: { person: Person; turmas: Turma[] 
                       setMessage(null);
                       deleteTurma(t.id).then(
                         () => setMessage({ kind: "ok", text: `Turma ${t.name} excluída.` }),
-                        () => setMessage({ kind: "err", text: "Não deu para excluir agora. Confira a internet e tente de novo." }),
+                        async (err) => setMessage({ kind: "err", text: await failureText(err, "excluir") }),
                       );
                     }}
                   />
@@ -134,8 +133,8 @@ function TurmaForm({
         setHorario("");
         setLink("");
       }
-    } catch {
-      setError(SAVE_ERROR);
+    } catch (err) {
+      setError(await failureText(err, "salvar"));
     } finally {
       setBusy(false);
     }

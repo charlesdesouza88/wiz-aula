@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { isLive, isOver, teacherList, type Aula, type Turma } from "@/lib/aulas";
+import { failureText } from "@/lib/service-status";
 import { formatDay, formatTime } from "@/lib/format";
 import { shortMeetLink } from "@/lib/meet";
 import { deleteAula, endAula, pingAula } from "@/lib/data";
@@ -16,7 +17,7 @@ export function AulaList({ aulas, turma, now }: { aulas: Aula[]; turma: Turma | 
   const list = turma ? teacherList(aulas, turma.id, now) : [];
   const act: Act = (action) => {
     setMessage(null);
-    action().catch(() => setMessage({ kind: "err", text: "Não deu para salvar agora. Confira a internet e tente de novo." }));
+    action().catch(async (err) => setMessage({ kind: "err", text: await failureText(err, "salvar") }));
   };
   const onEdited = (saved: boolean) => saved && setMessage({ kind: "ok", text: "Aula atualizada." });
   return (

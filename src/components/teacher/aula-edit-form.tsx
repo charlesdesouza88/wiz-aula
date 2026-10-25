@@ -2,6 +2,7 @@
 
 import { useState, type FormEvent } from "react";
 import type { Aula } from "@/lib/aulas";
+import { failureText } from "@/lib/service-status";
 import { updateAula } from "@/lib/data";
 import { MEET_LINK_ERROR, normalizeMeetLink, shortMeetLink } from "@/lib/meet";
 import { parseDateTimeInput, toDateTimeInputs } from "@/lib/time";
@@ -41,8 +42,8 @@ export function AulaEditForm({ aula, onDone }: { aula: Aula; onDone: (saved: boo
     try {
       await updateAula(aula.id, { startAt, durationMin: Number(duration), title: title.trim(), meetLink });
       onDone(true);
-    } catch {
-      setMessage({ kind: "err", text: "Não deu para salvar agora. Confira a internet e tente de novo." });
+    } catch (err) {
+      setMessage({ kind: "err", text: await failureText(err, "salvar") });
       setBusy(false);
     }
   }
