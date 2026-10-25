@@ -2,6 +2,7 @@
 
 import { useState, type FormEvent } from "react";
 import { addPerson, adminError } from "@/lib/admin";
+import { failureText } from "@/lib/service-status";
 import type { Turma } from "@/lib/aulas";
 import { FormMessage } from "@/components/form-message";
 import type { Issued } from "./code-card";
@@ -9,7 +10,6 @@ import type { Issued } from "./code-card";
 const ERRORS = {
   invalid: "Confira o nome e a turma.",
   "not-allowed": "Só a secretaria pode adicionar pessoas.",
-  offline: "Não deu para salvar agora. Confira a internet e tente de novo.",
 } as const;
 
 type NewRole = "student" | "teacher";
@@ -48,7 +48,8 @@ export function AddPersonForm({
         code,
       });
     } catch (err) {
-      setError(ERRORS[adminError(err)]);
+      const kind = adminError(err);
+      setError(kind === "offline" ? await failureText(err, "salvar") : ERRORS[kind]);
     } finally {
       setBusy(false);
     }

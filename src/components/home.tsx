@@ -5,6 +5,7 @@ import { removeDeviceSubscription } from "@/lib/push";
 import { signOut, useSession } from "@/lib/session";
 import { isSupabaseConfigured } from "@/lib/supabase";
 import { LoginForm } from "./login-form";
+import { ServiceWait } from "./service-banner";
 import { StudentHome } from "./student/student-home";
 import { TeacherHome } from "./teacher/teacher-home";
 
@@ -17,6 +18,7 @@ export function Home() {
   }
   if (session.status === "loading") return <p className="text-muted">Carregando…</p>;
   if (session.status === "signed-out") return <LoginForm />;
+  if (session.status === "unavailable") return <ServiceWait />;
 
   const { person } = session;
   return (

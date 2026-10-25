@@ -3,10 +3,12 @@
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { loadRoster } from "@/lib/admin";
+import { reportTrouble } from "@/lib/service-status";
 import { REFRESH_EVENT } from "@/lib/pull";
 import { useData } from "@/lib/data";
 import type { RosterEntry, RosterFilter } from "@/lib/roster";
 import { useSession, type Person } from "@/lib/session";
+import { LoadProblem, ServiceWait } from "@/components/service-banner";
 import { AddPersonForm } from "./add-person-form";
 import { BulkAddForm } from "./bulk-add-form";
 import { CodeSheet, type Batch } from "./code-sheet";
@@ -17,6 +19,7 @@ import { RosterList } from "./roster-list";
 export function AdminPage() {
   const session = useSession();
   if (session.status === "loading") return <p className="text-muted">Carregando…</p>;
+  if (session.status === "unavailable") return <ServiceWait />;
   if (session.status === "signed-out" || session.person.role !== "admin") {
     return (
       <div className="card desktop:max-w-[36rem]">
@@ -52,7 +55,8 @@ function AdminHome({ person }: { person: Person }) {
         if (cancelled) return;
         setRoster(next);
         setLoadFailed(false);
-      } catch {
+      } catch (err) {
+        void reportTrouble(err);
         if (!cancelled) setLoadFailed(true);
       }
     })();
@@ -78,11 +82,7 @@ function AdminHome({ person }: { person: Person }) {
 
   // Wait for the turmas, so nobody is added "Sem turma" just because the list was still loading.
   if (!data) {
-    return (
-      <p className={error ? "msg-err" : "text-muted"}>
-        {error ? "Não deu para carregar as turmas. Confira a internet." : "Carregando…"}
-      </p>
-    );
+    return error ? <LoadProblem what="carregar as turmas" /> : <p className="text-muted">Carregando…</p>;
   }
 
   return (

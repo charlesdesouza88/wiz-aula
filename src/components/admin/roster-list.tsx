@@ -2,14 +2,14 @@
 
 import { useState } from "react";
 import { adminError, newCode, removePerson } from "@/lib/admin";
+import { failureText } from "@/lib/service-status";
 import type { Turma } from "@/lib/aulas";
 import { filterRoster, roleLabel, statusLabel, type RosterEntry, type RosterFilter } from "@/lib/roster";
 import { ConfirmButton } from "@/components/confirm-button";
 import { FormMessage, type Message } from "@/components/form-message";
 import type { Issued } from "./code-card";
 import { EditPersonForm } from "./edit-person-form";
-
-const OFFLINE = "Não deu agora. Confira a internet e tente de novo.";
+import { LoadProblem } from "@/components/service-banner";
 
 /** "Aluno · Turma Masters", "Professor · Turma Masters, Turma Teens 3", "Secretaria". */
 export function personDetail(e: RosterEntry, turmas: Turma[]): string {
@@ -59,7 +59,7 @@ export function RosterList({
     } catch (err) {
       setMessage({
         kind: "err",
-        text: adminError(err) === "offline" ? OFFLINE : "Não é possível mudar o código desta pessoa.",
+        text: adminError(err) === "offline" ? await failureText(err, "trocar o código") : "Não é possível mudar o código desta pessoa.",
       });
     }
     onChanged();
@@ -74,7 +74,7 @@ export function RosterList({
     } catch (err) {
       setMessage({
         kind: "err",
-        text: adminError(err) === "offline" ? OFFLINE : "Não é possível remover esta pessoa.",
+        text: adminError(err) === "offline" ? await failureText(err, "remover") : "Não é possível remover esta pessoa.",
       });
     }
     onChanged();
@@ -104,9 +104,11 @@ export function RosterList({
       </p>
       <FormMessage message={message} />
       {!roster ? (
-        <p className={loadFailed ? "msg-err" : "text-muted"}>
-          {loadFailed ? "Não deu para carregar a lista. Confira a internet." : "Carregando…"}
-        </p>
+        loadFailed ? (
+          <LoadProblem what="carregar a lista" />
+        ) : (
+          <p className="text-muted">Carregando…</p>
+        )
       ) : shown.length === 0 ? (
         <p className="text-muted">Ninguém aqui ainda.</p>
       ) : (

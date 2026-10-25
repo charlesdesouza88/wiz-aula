@@ -5,6 +5,7 @@ import { InlineScript } from "@/components/inline-script";
 import { MainNav } from "@/components/main-nav";
 import { PullToRefresh } from "@/components/pull-to-refresh";
 import { PwaSetup } from "@/components/pwa-setup";
+import { ServiceBanner } from "@/components/service-banner";
 import { SizeButton } from "@/components/size-button";
 import { PREF } from "@/lib/pref-keys";
 import { MisterWizLogo } from "@/components/icons";
@@ -52,6 +53,7 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
             <SizeButton />
           </header>
           <MainNav />
+          <ServiceBanner />
           <main className="flex flex-col gap-4">{children}</main>
           <PwaSetup />
           <PullToRefresh />

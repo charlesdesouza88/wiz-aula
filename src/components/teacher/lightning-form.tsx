@@ -2,6 +2,7 @@
 
 import { useState, type FormEvent } from "react";
 import type { Turma } from "@/lib/aulas";
+import { failureText } from "@/lib/service-status";
 import { MEET_LINK_ERROR, normalizeMeetLink, shortMeetLink } from "@/lib/meet";
 import { startLightning } from "@/lib/data";
 import type { Person } from "@/lib/session";
@@ -24,8 +25,8 @@ export function LightningForm({ person, turma }: { person: Person; turma: Turma 
       await startLightning(person, turma, meetLink, save);
       setLink(shortMeetLink(meetLink));
       setMessage({ kind: "ok", text: `Pronto! A aula começou e os alunos de ${turma.name} foram avisados.` });
-    } catch {
-      setMessage({ kind: "err", text: "Não deu para salvar agora. Confira a internet e tente de novo." });
+    } catch (err) {
+      setMessage({ kind: "err", text: await failureText(err, "começar a aula") });
     } finally {
       setBusy(false);
     }

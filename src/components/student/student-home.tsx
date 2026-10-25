@@ -8,6 +8,7 @@ import { formatDay, formatTime } from "@/lib/format";
 import { useDevice, useNow } from "@/lib/hooks";
 import type { Person } from "@/lib/session";
 import { InstallCard } from "@/components/install-card";
+import { LoadProblem } from "@/components/service-banner";
 import { AlertsCard } from "./alerts-card";
 import { Hero } from "./hero";
 import { LiveAlert } from "./live-alert";
@@ -19,7 +20,7 @@ export function StudentHome({ person }: { person: Person }) {
   const [sound, setSound] = useState(false);
 
   if (!data || now === null || !device) {
-    return <p className={error ? "msg-err" : "text-muted"}>{error ? "Não deu para carregar as aulas. Confira a internet." : "Carregando…"}</p>;
+    return error ? <LoadProblem what="carregar as aulas" /> : <p className="text-muted">Carregando…</p>;
   }
   if (!data.turmas.length) {
     return (

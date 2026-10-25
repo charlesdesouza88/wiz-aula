@@ -3,6 +3,7 @@ import type { RealtimeChannel } from "@supabase/supabase-js";
 import { DEFAULT_DURATION_MIN, type Aula, type Turma } from "./aulas.ts";
 import type { Database } from "./database.types";
 import { refreshNow } from "./hooks.ts";
+import { reportOk, reportTrouble, watchSlow } from "./service-status.ts";
 import type { Person } from "./session";
 import { supabase } from "./supabase";
 import { DAY, addWeeks } from "./time.ts";
@@ -62,17 +63,22 @@ function toTurma(r: TurmaRow, names: Map<string, string>): Turma {
 async function load() {
   const since = new Date(Date.now() - HISTORY_MS).toISOString();
   const db = supabase();
-  const [turmas, aulas, people] = await Promise.all([
-    db.from("turmas").select("*").order("name"),
-    db.from("aulas").select("*").gte("start_at", since).order("start_at"),
-    db.from("people").select("id, name"),
-  ]);
-  const error = turmas.error ?? aulas.error ?? people.error;
-  if (error) {
+  const [turmas, aulas, people] = await watchSlow(
+    Promise.all([
+      db.from("turmas").select("*").order("name"),
+      db.from("aulas").select("*").gte("start_at", since).order("start_at"),
+      db.from("people").select("id, name"),
+    ]),
+  );
+  const failed = [turmas, aulas, people].find((r) => r.error);
+  if (failed?.error) {
+    // Keep showing what we had; the banner says why it is not updating.
+    void reportTrouble(Object.assign(failed.error, { httpStatus: failed.status }));
     loadError = true;
     emit();
     return;
   }
+  reportOk();
   const names = new Map((people.data ?? []).map((p) => [p.id, p.name]));
   data = { turmas: (turmas.data ?? []).map((t) => toTurma(t, names)), aulas: (aulas.data ?? []).map(toAula) };
   loadError = false;
@@ -152,8 +158,9 @@ export function resetData() {
 
 // --- actions (row-level security checks each one) ---
 
-function check<T extends { error: unknown }>(res: T): T {
-  if (res.error) throw res.error;
+function check<T extends { error: unknown; status?: number }>(res: T): T {
+  // Keep the HTTP status so failureText() can tell an outage from a refusal.
+  if (res.error) throw Object.assign(res.error as object, { httpStatus: res.status });
   return res;
 }
 
@@ -262,8 +269,8 @@ export async function updateTurma(
 
 /** Deletes the turma with its classes and enrolments (the students stay in the school). */
 export async function deleteTurma(id: string) {
-  const { data, error } = await supabase().from("turmas").delete().eq("id", id).select("id");
-  if (error) throw error;
+  const { data, error, status } = await supabase().from("turmas").delete().eq("id", id).select("id");
+  if (error) throw Object.assign(error, { httpStatus: status });
   // RLS hides rows it refuses to delete; treat that as a failure, not silent success.
   if (!data?.length) throw new Error("not allowed");
   await load();

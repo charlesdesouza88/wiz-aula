@@ -9,7 +9,9 @@ const ERRORS = {
   "unknown-code": "Não encontramos esse código. Confira as letras e os números e tente de novo.",
   "too-many": "Foram muitas tentativas. Espere 10 minutos e tente de novo.",
   "not-enabled": "A entrada com código ainda não foi ligada. Avise a escola.",
-  offline: "Não deu para entrar agora. Confira a internet e tente de novo.",
+  offline: "Você está sem internet. Confira o Wi-Fi ou os dados móveis e tente de novo.",
+  down: "O Wiz Aula está fora do ar agora. O problema não é no seu aparelho nem na sua internet. Tente de novo em alguns minutos.",
+  failed: "Não deu para entrar agora. Tente de novo.",
 } as const;
 
 export function LoginForm() {
