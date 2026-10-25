@@ -15,8 +15,9 @@ export function adminError(err: unknown): AdminError {
   return "offline";
 }
 
-function check<T>(res: { data: T; error: unknown }): T {
-  if (res.error) throw res.error;
+function check<T>(res: { data: T; error: unknown; status?: number }): T {
+  // Keep the HTTP status so failureText() can tell an outage from a refusal.
+  if (res.error) throw Object.assign(res.error as object, { httpStatus: res.status });
   return res.data;
 }
 

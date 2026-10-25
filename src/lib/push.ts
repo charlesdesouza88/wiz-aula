@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { alertsState, base64UrlToBytes, type AlertsState } from "./alerts.ts";
 import { detectDevice } from "./device.ts";
+import { reportTrouble } from "./service-status.ts";
 import type { Person } from "./session";
 import { supabase } from "./supabase";
 
@@ -30,7 +31,7 @@ async function currentSubscription(): Promise<PushSubscription | null> {
 
 async function saveSubscription(person: Person, sub: PushSubscription) {
   const json = sub.toJSON();
-  const { error } = await supabase()
+  const { error, status } = await supabase()
     .from("push_subscriptions")
     .upsert(
       {
@@ -42,7 +43,7 @@ async function saveSubscription(person: Person, sub: PushSubscription) {
       },
       { onConflict: "endpoint" },
     );
-  if (error) throw error;
+  if (error) throw Object.assign(error, { httpStatus: status });
 }
 
 /** The alerts card state for this device, plus the key needed to subscribe. */
@@ -91,7 +92,8 @@ export function useAlerts(person: Person) {
       await saveSubscription(person, sub);
       setState("on");
       return "on";
-    } catch {
+    } catch (err) {
+      await reportTrouble(err);
       return "error";
     }
   }

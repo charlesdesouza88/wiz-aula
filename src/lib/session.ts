@@ -1,5 +1,6 @@
 import { useSyncExternalStore } from "react";
 import type { Database } from "./database.types";
+import { reportOk, reportTrouble, watchSlow } from "./service-status.ts";
 import { supabase } from "./supabase";
 
 // Who is signed in on this device. Each device signs in anonymously with
@@ -11,6 +12,8 @@ export type Person = { id: string; name: string; role: Role; schoolId: string };
 export type Session =
   | { status: "loading" }
   | { status: "signed-out" }
+  // Signed in on this device, but Wiz Aula cannot be reached to say as whom.
+  | { status: "unavailable" }
   | { status: "signed-in"; person: Person };
 
 const LOADING: Session = { status: "loading" };
@@ -24,24 +27,30 @@ function set(next: Session) {
 }
 
 async function loadPerson(): Promise<Person | null> {
-  const { data } = await supabase().auth.getSession();
+  const { data, error: authError } = await supabase().auth.getSession();
+  // A saved session whose token could not be renewed (the server did not answer).
+  if (authError) throw authError;
   if (!data.session) return null;
-  const { data: login, error } = await supabase()
+  const { data: login, error, status } = await supabase()
     .from("person_logins")
     .select("person:people(id, name, role, school_id)")
     .maybeSingle();
-  if (error) throw error;
+  if (error) throw Object.assign(error, { httpStatus: status });
+  reportOk();
   const p = login?.person;
   return p ? { id: p.id, name: p.name, role: p.role, schoolId: p.school_id } : null;
 }
 
 async function refresh() {
   try {
-    const person = await loadPerson();
+    const person = await watchSlow(loadPerson());
     set(person ? { status: "signed-in", person } : { status: "signed-out" });
-  } catch {
-    // Offline or Supabase unreachable: keep what we had, or show the login.
-    if (session.status === "loading") set({ status: "signed-out" });
+  } catch (err) {
+    const service = await reportTrouble(err);
+    // Keep showing who is signed in; never send a signed-in device back to the
+    // code screen just because Wiz Aula or the internet is down.
+    if (session.status === "signed-in") return;
+    set(service === "ok" ? { status: "signed-out" } : { status: "unavailable" });
   }
 }
 
@@ -68,19 +77,26 @@ export function useSession(): Session {
   );
 }
 
-export type SignInResult = "ok" | "unknown-code" | "too-many" | "not-enabled" | "offline";
+export type SignInResult = "ok" | "unknown-code" | "too-many" | "not-enabled" | "offline" | "down" | "failed";
 
 // Errors from redeem_access_code that mean the saved device session is no
 // longer valid: rejected token, or its auth user no longer exists.
 const STALE_SESSION = new Set(["PGRST301", "PGRST302", "PGRST303", "28000", "23503"]);
 
-type Anonymous = "ok" | "not-enabled" | "offline";
+/** Why a sign-in step failed: Wiz Aula down, no internet, or something else. */
+async function troubleResult(err: unknown): Promise<"down" | "offline" | "failed"> {
+  const service = await reportTrouble(err);
+  return service === "ok" ? "failed" : service;
+}
+
+type Anonymous = "ok" | "not-enabled" | "offline" | "down" | "failed";
 
 async function signInAnonymously(): Promise<Anonymous> {
   const { error } = await supabase().auth.signInAnonymously();
   if (!error) return "ok";
   // The project must allow anonymous sign-ins (Authentication › Sign In / Providers).
-  return error.code === "anonymous_provider_disabled" ? "not-enabled" : "offline";
+  if (error.code === "anonymous_provider_disabled") return "not-enabled";
+  return troubleResult(error);
 }
 
 /** Signs this device in with a school-issued access code. */
@@ -94,21 +110,26 @@ export async function signIn(code: string): Promise<SignInResult> {
       const anon = await signInAnonymously();
       if (anon !== "ok") return anon;
     }
-    let { data: rows, error } = await supabase().rpc("redeem_access_code", { code });
+    let { data: rows, error, status } = await supabase().rpc("redeem_access_code", { code });
     if (error && !fresh && STALE_SESSION.has(error.code)) {
       // The saved device session may be stale (its auth user was removed after
       // a long time unused). Start over with a new anonymous user, once.
       await auth.signOut({ scope: "local" });
       const anon = await signInAnonymously();
       if (anon !== "ok") return anon;
-      ({ data: rows, error } = await supabase().rpc("redeem_access_code", { code }));
+      ({ data: rows, error, status } = await supabase().rpc("redeem_access_code", { code }));
     }
-    if (error) return error.message.includes("too_many_attempts") ? "too-many" : "offline";
+    if (error) {
+      if (error.message.includes("too_many_attempts")) return "too-many";
+      return troubleResult(Object.assign(error, { httpStatus: status }));
+    }
+    reportOk();
     if (!rows?.length) return "unknown-code";
     await refresh();
-    return session.status === "signed-in" ? "ok" : "offline";
-  } catch {
-    return "offline";
+    if (session.status === "signed-in") return "ok";
+    return session.status === "unavailable" ? troubleResult({ httpStatus: 0 }) : "failed";
+  } catch (err) {
+    return troubleResult(err);
   }
 }
 
